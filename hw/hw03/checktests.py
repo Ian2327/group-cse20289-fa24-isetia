@@ -1,7 +1,9 @@
 #Ian Setia
 #isetia@nd.edu
 
-import argparse, requests, json, statistics, numpy
+import argparse, requests, json, statistics, numpy, calendar, os
+from createreport import read_text_file, generate_report 
+from plotdata import average_daily_performance, plot_data 
 
 def fetch_json(url):
     response = requests.get(url)
@@ -47,27 +49,35 @@ def print_dict(dictionary):
 
 def main():
     parser = argparse.ArgumentParser(description="Fetch JSON file from given URL.")
+    parser.add_argument("year", type=int, help="Year to fetch data")
+    parser.add_argument("month", type=int, help="Month to fetch data")
+    parser.add_argument("text_file", type=str, help="Text file to insert into report")
     parser.add_argument("url", type=str, help="URL to fetch the JSON file from.")
 
     args = parser.parse_args()
 
     json_data = fetch_json(args.url)
+
+    filtered_wired = filter_json(json_data, args.month, args.year, "eth0")
+    filtered_wireless = filter_json(json_data, args.month, args.year, "wlan0")
+
+    analyzed_wired = analyze_json(filtered_wired, "eth0")
+    analyzed_wireless = analyze_json(filtered_wireless, "wlan0")
+
+    text = read_text_file(args.text_file)
     
-    #if json_data is not None:
-    #   print(json.dumps(json_data, indent=4))
-    analyzed = analyze_json(json_data, "wlan0")
-    print_dict(analyzed)
-
-    filtered = filter_json(json_data)
-    #print(json.dumps(filtered, indent=4))
-
-    analyzed = analyze_json(filtered, "eth0")
-    print_dict(analyzed)
-
-    filtered = filter_json(json_data, interface="wlan0")
-
-    analyzed = analyze_json(filtered, "wlan0")
-    print_dict(analyzed)
+    _, days = calendar.monthrange(args.year, args.month)
+    stats_wired = average_daily_performance(filtered_wired, days)
+    stats_wireless = average_daily_performance(filtered_wireless, days)
+    plot_data(stats_wired, "graph_wired.png") 
+    plot_data(stats_wireless, "graph_wireless.png")
+    output_wired = f"{args.year}-{args.month}-Wired.docx"
+    output_wireless = f"{args.year}-{args.month}-WiFi.docx"
+    generate_report(text, analyzed_wired, "graph_wired.png", output_wired) 
+    generate_report(text, analyzed_wireless, "graph_wireless.png", output_wireless) 
+    os.remove("graph_wired.png")
+    os.remove("graph_wireless.png")
+    
 
 if __name__ == "__main__":
     main()
