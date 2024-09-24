@@ -55,6 +55,8 @@ def main():
     
     #if json_data is not None:
     #   print(json.dumps(json_data, indent=4))
+    analyzed = analyze_json(json_data, "wlan0")
+    print_dict(analyzed)
 
     filtered = filter_json(json_data)
     #print(json.dumps(filtered, indent=4))
