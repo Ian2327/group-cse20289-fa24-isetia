@@ -6,10 +6,21 @@ from createreport import read_text_file, generate_report
 from plotdata import average_daily_performance, plot_data 
 
 def fetch_json(url):
-    response = requests.get(url)
-    data = response.json()
-    return data
+    try:
+        response = requests.get(url)
+        data = response.json()
+        if not data:
+            print("No data available at the URL: {}".format(url))
+            return None
+        return data
+    except requests.exceptions.RequestException as e:
+        print("Error fetching data from {}: {}".format(url, e))
+        return None
+    except ValueError:
+        print("The data at {} is not valid JSON format".format(url))
+        return None
     
+
 def filter_json(data, month=5, year=2024, interface="eth0"):
     filtered_data = []
     for entry in data:
@@ -53,31 +64,57 @@ def main():
     parser.add_argument("month", type=int, help="Month to fetch data")
     parser.add_argument("text_file", type=str, help="Text file to insert into report")
     parser.add_argument("url", type=str, help="URL to fetch the JSON file from.")
+    parser.add_argument("--all", action="store_true", help="Ignore month and year arguments and create 2 unified Word files acorss all present year and month combinations in the dataset.")
 
     args = parser.parse_args()
+    
+    if not args.url:
+        print("No URL Detected. Now exiting ...")
+        return
+
 
     json_data = fetch_json(args.url)
 
-    filtered_wired = filter_json(json_data, args.month, args.year, "eth0")
-    filtered_wireless = filter_json(json_data, args.month, args.year, "wlan0")
+    if not json_data:
+        print("Failed to retrieve or parse JSON file. Now exiting ...")
+        return
 
-    analyzed_wired = analyze_json(filtered_wired, "eth0")
-    analyzed_wireless = analyze_json(filtered_wireless, "wlan0")
+    if not args.all:
+        filtered_wired = filter_json(json_data, args.month, args.year, "eth0")
+        filtered_wireless = filter_json(json_data, args.month, args.year, "wlan0")
 
-    text = read_text_file(args.text_file)
+        analyzed_wired = analyze_json(filtered_wired, "eth0")
+        analyzed_wireless = analyze_json(filtered_wireless, "wlan0")
+
+        text = read_text_file(args.text_file)
     
-    _, days = calendar.monthrange(args.year, args.month)
-    stats_wired = average_daily_performance(filtered_wired, days)
-    stats_wireless = average_daily_performance(filtered_wireless, days)
-    plot_data(stats_wired, "graph_wired.png") 
-    plot_data(stats_wireless, "graph_wireless.png")
-    output_wired = f"{args.year}-{args.month}-Wired.docx"
-    output_wireless = f"{args.year}-{args.month}-WiFi.docx"
-    generate_report(text, analyzed_wired, "graph_wired.png", output_wired) 
-    generate_report(text, analyzed_wireless, "graph_wireless.png", output_wireless) 
-    os.remove("graph_wired.png")
-    os.remove("graph_wireless.png")
-    
+        _, days = calendar.monthrange(args.year, args.month)
+        stats_wired = average_daily_performance(filtered_wired, days)
+        stats_wireless = average_daily_performance(filtered_wireless, days)
+        plot_data(stats_wired, "graph_wired.png") 
+        plot_data(stats_wireless, "graph_wireless.png")
+        output_wired = f"{args.year}-{args.month}-Wired.docx"
+        output_wireless = f"{args.year}-{args.month}-WiFi.docx"
+        if os.path.exists(output_wired):
+            user_input = input("File {} already exists on your machine, do you want to replace it? [y/n]: ".format(output_wired)).strip().lower()
+            if user_input == 'y':
+                generate_report(text, analyzed_wired, "graph_wired.png", output_wired) 
+            else:
+                print("File {} will not be replaced.".format(output_wired))
+        else:
+            generate_report(text, analyzed_wired, "graph_wired.png", output_wired)
+        if os.path.exists(output_wireless):
+            user_input = input("File {} already exists on your machine, do you want to replace it? [y/n]: ".format(output_wireless)).strip().lower()
+            if user_input == 'y':
+                generate_report(text, analyzed_wireless, "graph_wireless.png", output_wireless)
+            else:
+                print("File {} will not be replaced.".format(output_wireless))
+        else:
+            generate_report(text, analyzed_wireless, "graph_wireless.png", output_wireless) 
+        os.remove("graph_wired.png")
+        os.remove("graph_wireless.png")
+    else:
+        print("TO BE IMPLEMENTED")
 
 if __name__ == "__main__":
     main()
