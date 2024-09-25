@@ -23,11 +23,16 @@ def fetch_json(url):
 
 def filter_json(data, month=5, year=2024, interface="eth0"):
     filtered_data = []
-    for entry in data:
-        time_year = int(entry.get("timestamp")[:4])
-        time_month = int(entry.get("timestamp")[5:7])
-        if time_year == year and time_month == month and entry.get("interface") == interface:
-            filtered_data.append(entry)
+    if(month is None and year is None):
+        for entry in data:
+            if entry.get("interface") == interface:
+                filtered_data.append(entry)
+    else:
+        for entry in data:
+            time_year = int(entry.get("timestamp")[:4])
+            time_month = int(entry.get("timestamp")[5:7])
+            if time_year == year and time_month == month and entry.get("interface") == interface:
+                filtered_data.append(entry)
     return filtered_data
 
 def analyze_json(data, interface):
@@ -43,15 +48,31 @@ def analyze_json(data, interface):
         "Period" : period if len(unique_periods) == 1 else "All",
         "Interface" : "Wired" if interface == "eth0" else "Wireless",
         "Num Points" : len(tput),
-        "Min" : min(tput),
-        "Max" : max(tput),
-        "Mean" : statistics.mean(tput),
-        "Median" : statistics.median(tput),
+        "Min" : min(tput) if tput else 0,
+        "Max" : max(tput) if tput else 0,
+        "Mean" : statistics.mean(tput) if tput else 0,
+        "Median" : statistics.median(tput) if tput else 0,
         "Std Dev" : statistics.stdev(tput) if len(tput) > 1 else 0,
-        "10th Percentile" : numpy.percentile(tput, 10),
-        "90th Percentile" : numpy.percentile(tput, 90) 
+        "10th Percentile" : numpy.percentile(tput, 10) if tput else 0,
+        "90th Percentile" : numpy.percentile(tput, 90) if tput else 0
     }
     return data_dict
+
+def generate_all_report(data, text, interface, output):
+    filtered = filter_json(data, None, None, interface)
+    analyzed = analyze_json(filtered, interface)
+    stats = average_daily_performance(filtered, 12)
+    plot_data(stats, "all.png")
+    if os.path.exists(output):
+        user_input = input("File {} already exists on your machine, do you want to replace it? [y/n]: ".format(output)).strip().lower()
+        if user_input == 'y':
+            generate_report(text, analyzed, "all.png", output) 
+        else:
+           print("File {} will not be replaced.".format(output))
+    else:
+        generate_report(text, analyzed, "all.png", output)
+    os.remove("all.png")
+    
 
 def print_dict(dictionary):
     for key, value in dictionary.items():
@@ -78,7 +99,10 @@ def main():
     if not json_data:
         print("Failed to retrieve or parse JSON file. Now exiting ...")
         return
+    
+    text = read_text_file(args.text_file)
 
+    # Checks for --all flag
     if not args.all:
         filtered_wired = filter_json(json_data, args.month, args.year, "eth0")
         filtered_wireless = filter_json(json_data, args.month, args.year, "wlan0")
@@ -86,7 +110,7 @@ def main():
         analyzed_wired = analyze_json(filtered_wired, "eth0")
         analyzed_wireless = analyze_json(filtered_wireless, "wlan0")
 
-        text = read_text_file(args.text_file)
+        #text = read_text_file(args.text_file)
     
         _, days = calendar.monthrange(args.year, args.month)
         stats_wired = average_daily_performance(filtered_wired, days)
@@ -95,6 +119,8 @@ def main():
         plot_data(stats_wireless, "graph_wireless.png")
         output_wired = f"{args.year}-{args.month}-Wired.docx"
         output_wireless = f"{args.year}-{args.month}-WiFi.docx"
+
+        # Check for duplicate Wired docx output file
         if os.path.exists(output_wired):
             user_input = input("File {} already exists on your machine, do you want to replace it? [y/n]: ".format(output_wired)).strip().lower()
             if user_input == 'y':
@@ -103,6 +129,8 @@ def main():
                 print("File {} will not be replaced.".format(output_wired))
         else:
             generate_report(text, analyzed_wired, "graph_wired.png", output_wired)
+
+        # Checks for duplicate WiFi docx output file
         if os.path.exists(output_wireless):
             user_input = input("File {} already exists on your machine, do you want to replace it? [y/n]: ".format(output_wireless)).strip().lower()
             if user_input == 'y':
@@ -114,7 +142,11 @@ def main():
         os.remove("graph_wired.png")
         os.remove("graph_wireless.png")
     else:
-        print("TO BE IMPLEMENTED")
+        filtered_wired_all = filter_json(json_data, None, None, "eth0")
+        filtered_wireless_all = filter_json(json_data, None, None, "wlan0")
+
+        generate_all_report(filtered_wired_all, text, "eth0", "All-Wired.docx")
+        generate_all_report(filtered_wireless_all, text, "wlan0", "All-WiFi.docx")
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,8 @@
 Names: Andrew Linares , Ian Setia
 Emails: alinare2@nd.edu , isetia@nd.edu
 
+Extra Credit Attempted
+
 Task 3.1: We would want to filter first as it limits/reduces the number of elements our code would need to sort, thereby making the program run more efficiently.
 
 Task 7:

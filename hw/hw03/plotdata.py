@@ -9,7 +9,7 @@ def average_daily_performance(data, days):
     daily_average = {day : {"total" : 0, "count" : 0, "average" : 0} for day in range(1, days+1)}
     
     for entry in data:
-        day = int(entry["timestamp"][8:10])
+        day = int(entry["timestamp"][8:10]) if days != 12 else int(entry["timestamp"][5:7])
         if day in daily_average:
             daily_average[day]["total"] = daily_average[day]["total"] + entry["tput_mbps"]
             daily_average[day]["count"] += 1
@@ -24,9 +24,9 @@ def plot_data(data_dict, out_file):
     fig, ax = plt.subplots()
     ax.grid()
     ax.bar(days, averages)
-    plt.xlabel("Day")
+    plt.xlabel("Day" if 27 in days else "Month")
     plt.ylabel("Average Throughput (Mb/s)")
-    plt.title("Daily Average Throughput")
+    plt.title("Daily Average Throughput" if 27 in days else "Monthly Average Throughput")
     plt.savefig(out_file)
     plt.close()
 
