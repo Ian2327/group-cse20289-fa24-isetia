@@ -1,5 +1,5 @@
-#Ian Setia
-#isetia@nd.edu
+#Ian Setia, Andrew Linares
+#isetia@nd.edu, alinare2@nd.edu
 
 import argparse, requests, json, statistics, numpy, calendar, os
 from createreport import read_text_file, generate_report 

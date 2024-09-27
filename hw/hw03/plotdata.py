@@ -1,5 +1,5 @@
-#Ian Setia
-#isetia@nd.edu
+#Ian Setia, Andrew Linares
+#isetia@nd.edu, alinare2@nd.edu
 
 import argparse, json
 import matplotlib.pyplot as plt
