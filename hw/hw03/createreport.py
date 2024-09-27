@@ -10,10 +10,14 @@ def read_text_file(text_file):
 
 def create_stat_table(doc, stats):
     # Creates a table in the docx and fills the top row with headers
-    table = doc.add_table(rows=1, cols=2)
+    table = doc.add_table(rows=1, cols=2, style="Table Grid")
     header = table.rows[0].cells
     header[0].text = "Statistic"
     header[1].text = "Value"
+    for cell in header:
+        for p in cell.paragraphs:
+            for r in p.runs:
+                r.bold = True
 
     # Fills the rest of table with data
     for key, value in stats.items():
