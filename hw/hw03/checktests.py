@@ -26,7 +26,7 @@ def filter_json(data, month=5, year=2024, interface="eth0"):
     # If month and year are set to None, then the --all flag has been triggered and will skip filtering by month and year
     if(month is None and year is None):
         for entry in data:
-            if entry.get("interface") == interface:
+            if entry.get("interface") == interface and entry.get("direction") == "downlink" and entry.get("type") == "iperf":
                 filtered_data.append(entry)
     else:
         for entry in data:
@@ -34,7 +34,7 @@ def filter_json(data, month=5, year=2024, interface="eth0"):
             time_year = int(entry.get("timestamp")[:4])
             # filters the month
             time_month = int(entry.get("timestamp")[5:7])
-            if time_year == year and time_month == month and entry.get("interface") == interface:
+            if time_year == year and time_month == month and entry.get("interface") == interface and entry.get("direection") == "downlink" and entry.get("type") == "iperf":
                 filtered_data.append(entry)
     return filtered_data
 
