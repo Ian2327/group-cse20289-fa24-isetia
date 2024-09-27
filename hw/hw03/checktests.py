@@ -20,30 +20,34 @@ def fetch_json(url):
         print("The data at {} is not valid JSON format".format(url))
         return None
     
-
+# Filters a json stored in data variable by the month and year and interface given (default is 5 and 2024 and eth0) 
 def filter_json(data, month=5, year=2024, interface="eth0"):
     filtered_data = []
+    # If month and year are set to None, then the --all flag has been triggered and will skip filtering by month and year
     if(month is None and year is None):
         for entry in data:
             if entry.get("interface") == interface:
                 filtered_data.append(entry)
     else:
         for entry in data:
+            # filters the year
             time_year = int(entry.get("timestamp")[:4])
+            # filters the month
             time_month = int(entry.get("timestamp")[5:7])
             if time_year == year and time_month == month and entry.get("interface") == interface:
                 filtered_data.append(entry)
     return filtered_data
 
 def analyze_json(data, interface):
-    interface_data = [d for d in data if d.get("interface") == interface]
+    interface_data = [d for d in data if d.get("interface") == interface] # only includes correct interfaced data in list to analyze
     tput = [i["tput_mbps"] for i in interface_data]
-    unique_periods = set()
+    unique_periods = set() # used to determine if data is all from a single year and month or not
     period = ""
     for i in interface_data:
         unique_periods.add(i["timestamp"][:7])
         period = i["timestamp"][:7]
     tput = sorted(tput)
+    # stats have default values in case json is lacking data
     data_dict = {
         "Period" : period if len(unique_periods) == 1 else "All",
         "Interface" : "Wired" if interface == "eth0" else "Wireless",
@@ -58,6 +62,7 @@ def analyze_json(data, interface):
     }
     return data_dict
 
+# Custom function for the --all flag to generate its report due to differing function inputs
 def generate_all_report(data, text, interface, output):
     filtered = filter_json(data, None, None, interface)
     analyzed = analyze_json(filtered, interface)
@@ -98,6 +103,10 @@ def main():
 
     if not json_data:
         print("Failed to retrieve or parse JSON file. Now exiting ...")
+        return
+
+    if not os.path.exists(args.text_file):
+        print("The text file {} does not exist. Now exiting ...".format(args.text_file))
         return
     
     text = read_text_file(args.text_file)

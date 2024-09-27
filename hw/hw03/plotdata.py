@@ -6,13 +6,17 @@ import matplotlib.pyplot as plt
 import numpy as np 
 
 def average_daily_performance(data, days):
+    # Creates a dictionary that holds the total sum, total count, and average tput for each day in the month
+    # (or in the case of the --all, the same data for each month in the year)
     daily_average = {day : {"total" : 0, "count" : 0, "average" : 0} for day in range(1, days+1)}
     
+    # Fills dictionary with data
     for entry in data:
         day = int(entry["timestamp"][8:10]) if days != 12 else int(entry["timestamp"][5:7])
         if day in daily_average:
             daily_average[day]["total"] = daily_average[day]["total"] + entry["tput_mbps"]
             daily_average[day]["count"] += 1
+    # Calculates average for each bar in the graph
     for day, stat in daily_average.items():
         stat["average"] = (stat["total"]/stat["count"]) if stat["count"] != 0 else 0
     return daily_average

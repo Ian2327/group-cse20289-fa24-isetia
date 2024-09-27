@@ -3,16 +3,19 @@
 
 import argparse, os, docx, sys
 
+# Converts text file to text string
 def read_text_file(text_file):
     with open(text_file, 'r') as file:
         return file.read()
 
 def create_stat_table(doc, stats):
+    # Creates a table in the docx and fills the top row with headers
     table = doc.add_table(rows=1, cols=2)
     header = table.rows[0].cells
     header[0].text = "Statistic"
     header[1].text = "Value"
 
+    # Fills the rest of table with data
     for key, value in stats.items():
         row = table.add_row().cells
         row[0].text = key
