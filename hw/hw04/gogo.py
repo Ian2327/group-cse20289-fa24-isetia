@@ -2,7 +2,9 @@
 #isetia@nd.edu, alinare2@nd.edu
 import yaml, argparse, os
 from checktests import process_data
-from docx2pdf import convert
+from spire.doc import *
+from spire.doc.common import *
+
 
 def read_yaml(yaml_file):
     try:
@@ -50,18 +52,27 @@ def read_yaml(yaml_file):
         print(f"Error parsing YAML file ({yaml_file}): {e}");
         return None 
 
+def convert(input_file, output_file):
+    document = Document()
+    document.LoadFromFile(input_file)
+    document.SaveToFile(output_file, FileFormat.PDF)
+    document.Close()
+
 def pipeline(task_dicts):
     counter = 0
     for task_dict in task_dicts:
         for task_id in task_dict:
             task = task_dict.get(task_id)
             if process_data(task["Year"], task["Month"], task["StartText"], task["URL"], False, task["Prepend"]) == 0:
+                convert(f"{task['Prepend']}{task['Year']}-{task['Month']}-WiFi.docx", f"{task['Prepend']}{task['Year']}-{task['Month']}-WiFi.pdf")
+                convert(f"{task['Prepend']}{task['Year']}-{task['Month']}-Wired.docx", f"{task['Prepend']}{task['Year']}-{task['Month']}-Wired.pdf")
                 print(f"Task {task_id} Done!")
                 counter += 1
         
     print(f"Completed {counter} task(s)!")
 
 def main():
+    download_pandoc()
     parser = argparse.ArgumentParser()
     parser.add_argument("yaml_file", type=str, help="name of YAML file")
     parser.add_argument("--multi", type=int, help="number of allow processors to run program (1-4)")
