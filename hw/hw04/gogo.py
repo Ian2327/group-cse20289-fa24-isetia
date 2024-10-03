@@ -1,8 +1,8 @@
 #Ian Setia, Andrew Linares
 #isetia@nd.edu, alinare2@nd.edu
 import yaml, argparse, os
-from spire.doc import *
-from spire.doc.common import *
+from checktests import process_data
+from docx2pdf import convert
 
 def read_yaml(yaml_file):
     try:
@@ -50,14 +50,32 @@ def read_yaml(yaml_file):
         print(f"Error parsing YAML file ({yaml_file}): {e}");
         return None 
 
+def pipeline(task_dicts):
+    counter = 0
+    for task_dict in task_dicts:
+        for task_id in task_dict:
+            task = task_dict.get(task_id)
+            if process_data(task["Year"], task["Month"], task["StartText"], task["URL"], False, task["Prepend"]) == 0:
+                print(f"Task {task_id} Done!")
+                counter += 1
+        
+    print(f"Completed {counter} task(s)!")
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("yaml_file", type=str, help="name of YAML file")
+    parser.add_argument("--multi", type=int, help="number of allow processors to run program (1-4)")
     args = parser.parse_args()
+    
+    if args.multi:
+        #write code to implement concurrent.futures package (ProcessPoolExecutor)
+        pass
+
 
     data_dict = read_yaml(args.yaml_file)
     if data_dict is None:
         return -1
+    pipeline(data_dict)
     print("Success")
 
 if __name__ == "__main__":

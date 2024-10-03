@@ -84,50 +84,42 @@ def print_dict(dictionary):
         print("{}: {}".format(key, value))
     
 
-def main():
-    parser = argparse.ArgumentParser(description="Fetch JSON file from given URL.")
-    parser.add_argument("year", type=int, help="Year to fetch data")
-    parser.add_argument("month", type=int, help="Month to fetch data")
-    parser.add_argument("text_file", type=str, help="Text file to insert into report")
-    parser.add_argument("url", type=str, help="URL to fetch the JSON file from.")
-    parser.add_argument("--all", action="store_true", help="Ignore month and year arguments and create 2 unified Word files acorss all present year and month combinations in the dataset.")
-
-    args = parser.parse_args()
+def process_data(year, month, text_file, url, _all, prepend):
     
-    if not args.url:
+    if not url:
         print("No URL Detected. Now exiting ...")
         return
 
 
-    json_data = fetch_json(args.url)
+    json_data = fetch_json(url)
 
     if not json_data:
         print("Failed to retrieve or parse JSON file. Now exiting ...")
         return
 
-    if not os.path.exists(args.text_file):
-        print("The text file {} does not exist. Now exiting ...".format(args.text_file))
+    if not os.path.exists(text_file):
+        print("The text file {} does not exist. Now exiting ...".format(text_file))
         return
     
-    text = read_text_file(args.text_file)
+    text = read_text_file(text_file)
 
     # Checks for --all flag
-    if not args.all:
-        filtered_wired = filter_json(json_data, args.month, args.year, "eth0")
-        filtered_wireless = filter_json(json_data, args.month, args.year, "wlan0")
+    if not _all:
+        filtered_wired = filter_json(json_data, month, year, "eth0")
+        filtered_wireless = filter_json(json_data, month, year, "wlan0")
 
         analyzed_wired = analyze_json(filtered_wired, "eth0")
         analyzed_wireless = analyze_json(filtered_wireless, "wlan0")
 
         #text = read_text_file(args.text_file)
     
-        _, days = calendar.monthrange(args.year, args.month)
+        _, days = calendar.monthrange(year, month)
         stats_wired = average_daily_performance(filtered_wired, days)
         stats_wireless = average_daily_performance(filtered_wireless, days)
         plot_data(stats_wired, "graph_wired.png") 
         plot_data(stats_wireless, "graph_wireless.png")
-        output_wired = f"{args.year}-{args.month}-Wired.docx"
-        output_wireless = f"{args.year}-{args.month}-WiFi.docx"
+        output_wired = f"{prepend}{year}-{month}-Wired.docx"
+        output_wireless = f"{prepend}{year}-{month}-WiFi.docx"
 
         # Check for duplicate Wired docx output file
         if os.path.exists(output_wired):
@@ -150,12 +142,23 @@ def main():
             generate_report(text, analyzed_wireless, "graph_wireless.png", output_wireless) 
         os.remove("graph_wired.png")
         os.remove("graph_wireless.png")
+        return 0
     else:
         filtered_wired_all = filter_json(json_data, None, None, "eth0")
         filtered_wireless_all = filter_json(json_data, None, None, "wlan0")
 
         generate_all_report(filtered_wired_all, text, "eth0", "All-Wired.docx")
         generate_all_report(filtered_wireless_all, text, "wlan0", "All-WiFi.docx")
+        return 0
 
 if __name__ == "__main__":
-    main()
+    
+    parser = argparse.ArgumentParser(description="Fetch JSON file from given URL.")
+    parser.add_argument("year", type=int, help="Year to fetch data")
+    parser.add_argument("month", type=int, help="Month to fetch data")
+    parser.add_argument("text_file", type=str, help="Text file to insert into report")
+    parser.add_argument("url", type=str, help="URL to fetch the JSON file from.")
+    parser.add_argument("--all", action="store_true", help="Ignore month and year arguments and create 2 unified Word files acorss all present year and month combinations in the dataset.")
+
+    args = parser.parse_args()
+    process_data(args.year, args.month, args.text_file, args.url, args.all, "")
