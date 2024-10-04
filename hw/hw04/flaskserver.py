@@ -10,6 +10,7 @@ port = (54000 + (ndid % 150))
 def create_pdf(year, month, interface):
     prepend = ""
     docx = f"{prepend}{year}-{month}-{'Wired' if interface == 'eth0' else 'WiFi'}.docx"
+    docx_extra = f"{prepend}{year}-{month}-{'WiFi' if interface == 'eth0' else 'Wired'}.docx"
     pdf = f"{prepend}{year}-{month}-{'Wired' if interface == 'eth0' else 'WiFi'}.pdf"
         
     if not os.path.exists(pdf):
@@ -17,13 +18,11 @@ def create_pdf(year, month, interface):
             url = "http://ns-mn1.cse.nd.edu/cse20289-fa24/hw03/data-all.json"
             text = "intro.txt"
             checktests.process_data(year, month, text, url, False, prepend)
-        print("DOCX ------------------>")
-        print(docx)
         if os.path.exists(docx):
             try:
                 gogo.convert(docx, pdf)
-                print("Converted ---------------------------")
                 os.remove(docx)
+                os.remove(docx_extra)
             except Exception as e:
                 return f"Error create PDF: {e}"
         else:
