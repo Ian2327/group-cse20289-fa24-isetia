@@ -115,8 +115,8 @@ def process_data(year, month, text_file, url, _all, prepend):
         _, days = calendar.monthrange(year, month)
         stats_wired = average_daily_performance(filtered_wired, days)
         stats_wireless = average_daily_performance(filtered_wireless, days)
-        plot_data(stats_wired, "graph_wired.png") 
-        plot_data(stats_wireless, "graph_wireless.png")
+        plot_data(stats_wired, f"{prepend}{month}graph_wired.png") 
+        plot_data(stats_wireless, f"{prepend}{month}graph_wireless.png")
         output_wired = f"{prepend}{year}-{month}-Wired.docx"
         output_wireless = f"{prepend}{year}-{month}-WiFi.docx"
 
@@ -124,23 +124,23 @@ def process_data(year, month, text_file, url, _all, prepend):
         if os.path.exists(output_wired):
             user_input = input("File {} already exists on your machine, do you want to replace it? [y/n]: ".format(output_wired)).strip().lower()
             if user_input == 'y':
-                generate_report(text, analyzed_wired, "graph_wired.png", output_wired) 
+                generate_report(text, analyzed_wired, f"{prepend}{month}graph_wired.png", output_wired) 
             else:
                 print("File {} will not be replaced.".format(output_wired))
         else:
-            generate_report(text, analyzed_wired, "graph_wired.png", output_wired)
+            generate_report(text, analyzed_wired, f"{prepend}{month}graph_wired.png", output_wired)
 
         # Checks for duplicate WiFi docx output file
         if os.path.exists(output_wireless):
             user_input = input("File {} already exists on your machine, do you want to replace it? [y/n]: ".format(output_wireless)).strip().lower()
             if user_input == 'y':
-                generate_report(text, analyzed_wireless, "graph_wireless.png", output_wireless)
+                generate_report(text, analyzed_wireless, f"{prepend}{month}graph_wireless.png", output_wireless)
             else:
                 print("File {} will not be replaced.".format(output_wireless))
         else:
-            generate_report(text, analyzed_wireless, "graph_wireless.png", output_wireless) 
-        os.remove("graph_wired.png")
-        os.remove("graph_wireless.png")
+            generate_report(text, analyzed_wireless, f"{prepend}{month}graph_wireless.png", output_wireless) 
+        os.remove(f"{prepend}{month}graph_wired.png")
+        os.remove(f"{prepend}{month}graph_wireless.png")
         return 0
     else:
         filtered_wired_all = filter_json(json_data, None, None, "eth0")

@@ -59,18 +59,21 @@ def convert(input_file, output_file):
     document.Close()
 
 def pipeline(task_dict):
-    counter = 0
-    for task_id in task_dict:
-        task = task_dict.get(task_id)
-        if process_data(task["Year"], task["Month"], task["StartText"], task["URL"], False, task["Prepend"]) == 0:
-            convert(f"{task['Prepend']}{task['Year']}-{task['Month']}-WiFi.docx", f"{task['Prepend']}{task['Year']}-{task['Month']}-WiFi.pdf")
-            convert(f"{task['Prepend']}{task['Year']}-{task['Month']}-Wired.docx", f"{task['Prepend']}{task['Year']}-{task['Month']}-Wired.pdf")
-            os.remove(f"{task['Prepend']}{task['Year']}-{task['Month']}-Wired.docx")
-            os.remove(f"{task['Prepend']}{task['Year']}-{task['Month']}-WiFi.docx")
+    try:
+        counter = 0
+        for task_id in task_dict:
+            task = task_dict.get(task_id)
+            if process_data(task["Year"], task["Month"], task["StartText"], task["URL"], False, task["Prepend"]) == 0:
+                convert(f"{task['Prepend']}{task['Year']}-{task['Month']}-WiFi.docx", f"{task['Prepend']}{task['Year']}-{task['Month']}-WiFi.pdf")
+                convert(f"{task['Prepend']}{task['Year']}-{task['Month']}-Wired.docx", f"{task['Prepend']}{task['Year']}-{task['Month']}-Wired.pdf")
+                os.remove(f"{task['Prepend']}{task['Year']}-{task['Month']}-Wired.docx")
+                os.remove(f"{task['Prepend']}{task['Year']}-{task['Month']}-WiFi.docx")
                 
-            print(f"{task['Prepend']}{task['Year']}-{task['Month']}-WiFi.docx was successfully converted to {task['Prepend']}{task['Year']}-{task['Month']}-WiFi.pdf")
-            print(f"{task['Prepend']}{task['Year']}-{task['Month']}-Wired.docx was successfully converted to {task['Prepend']}{task['Year']}-{task['Month']}-Wired.pdf")
-            print(f"Task {task_id} Done!")
+            #print(f"{task['Prepend']}{task['Year']}-{task['Month']}-WiFi.docx was successfully converted to {task['Prepend']}{task['Year']}-{task['Month']}-WiFi.pdf")
+            #print(f"{task['Prepend']}{task['Year']}-{task['Month']}-Wired.docx was successfully converted to {task['Prepend']}{task['Year']}-{task['Month']}-Wired.pdf")
+                #print(f"Task {task_id} Done!")
+    except Exception as e:
+        print(f"Exception: {e}")
         
 
 def main():
