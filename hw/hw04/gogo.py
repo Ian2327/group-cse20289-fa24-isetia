@@ -71,9 +71,11 @@ def pipeline(task_dict):
                 
             #print(f"{task['Prepend']}{task['Year']}-{task['Month']}-WiFi.docx was successfully converted to {task['Prepend']}{task['Year']}-{task['Month']}-WiFi.pdf")
             #print(f"{task['Prepend']}{task['Year']}-{task['Month']}-Wired.docx was successfully converted to {task['Prepend']}{task['Year']}-{task['Month']}-Wired.pdf")
-                #print(f"Task {task_id} Done!")
+                print(f"Task {task_id} Done!")
+                return 1
     except Exception as e:
         print(f"Exception: {e}")
+        return 0
         
 
 def main():
@@ -90,20 +92,24 @@ def main():
 
     if args.multi:
         if args.multi < 5 and args.multi > 0:
+            counter = 0
             with concurrent.futures.ProcessPoolExecutor(max_workers=args.multi) as executor:
-                executor.map(pipeline, data_dict)
-            print(f"Completed {len(data_dict)} task(s)!")
+                counter = executor.map(pipeline, data_dict)
+            print(f"Completed {sum(counter)} task(s)!")
         else:
             proceed = input(f"{args.multi} processors are unavailable. Would you like to continue with the default option (nonparallel)? [y/n]: ")
             if proceed == 'y':
+                counter = 0
                 for task_dict in data_dict:
-                    pipeline(task_dict)
+                    counter += pipeline(task_dict)
+                print(f"Completed {counter} task(s)")
             else:
                 print("Now exiting ...")
     else:
+        counter = 0
         for task_dict in data_dict:
-            pipeline(task_dict)
-        print(f"Completed {len(data_dict)} task(s)!")
+            counter += pipeline(task_dict)
+        print(f"Completed {counter} task(s)!")
 
 if __name__ == "__main__":
     main()
