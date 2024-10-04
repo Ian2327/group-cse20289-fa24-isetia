@@ -34,7 +34,7 @@ def filter_json(data, month=5, year=2024, interface="eth0"):
             time_year = int(entry.get("timestamp")[:4])
             # filters the month
             time_month = int(entry.get("timestamp")[5:7])
-            if time_year == year and time_month == month and entry.get("interface") == interface and entry.get("direection") == "downlink" and entry.get("type") == "iperf":
+            if time_year == year and time_month == month and entry.get("interface") == interface and entry.get("direction") == "downlink" and entry.get("type") == "iperf":
                 filtered_data.append(entry)
     return filtered_data
 
@@ -89,7 +89,6 @@ def process_data(year, month, text_file, url, _all, prepend):
     if not url:
         print("No URL Detected. Now exiting ...")
         return
-
 
     json_data = fetch_json(url)
 

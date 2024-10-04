@@ -1,6 +1,7 @@
 #Ian Setia, Andrew Linares
 #isetia@nd.edu, alinare2@nd.edu
 import yaml, argparse, os
+import checktests
 from checktests import process_data
 from spire.doc import *
 from spire.doc.common import *
@@ -66,13 +67,17 @@ def pipeline(task_dicts):
             if process_data(task["Year"], task["Month"], task["StartText"], task["URL"], False, task["Prepend"]) == 0:
                 convert(f"{task['Prepend']}{task['Year']}-{task['Month']}-WiFi.docx", f"{task['Prepend']}{task['Year']}-{task['Month']}-WiFi.pdf")
                 convert(f"{task['Prepend']}{task['Year']}-{task['Month']}-Wired.docx", f"{task['Prepend']}{task['Year']}-{task['Month']}-Wired.pdf")
+                os.remove(f"{task['Prepend']}{task['Year']}-{task['Month']}-Wired.docx")
+                os.remove(f"{task['Prepend']}{task['Year']}-{task['Month']}-WiFi.docx")
+                
+                print(f"{task['Prepend']}{task['Year']}-{task['Month']}-WiFi.docx was successfully converted to {task['Prepend']}{task['Year']}-{task['Month']}-WiFi.pdf")
+                print(f"{task['Prepend']}{task['Year']}-{task['Month']}-Wired.docx was successfully converted to {task['Prepend']}{task['Year']}-{task['Month']}-Wired.pdf")
                 print(f"Task {task_id} Done!")
                 counter += 1
         
     print(f"Completed {counter} task(s)!")
 
 def main():
-    download_pandoc()
     parser = argparse.ArgumentParser()
     parser.add_argument("yaml_file", type=str, help="name of YAML file")
     parser.add_argument("--multi", type=int, help="number of allow processors to run program (1-4)")

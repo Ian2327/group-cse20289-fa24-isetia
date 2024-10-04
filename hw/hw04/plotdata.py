@@ -22,6 +22,8 @@ def average_daily_performance(data, days):
     return daily_average
          
 def plot_data(data_dict, out_file):
+    print("Data_dict: ------>")
+    print(data_dict)
     days = list(data_dict.keys())
     averages = [stat["average"] for stat in data_dict.values()]
 
