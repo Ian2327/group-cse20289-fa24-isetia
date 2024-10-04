@@ -15,12 +15,10 @@ def read_yaml(yaml_file):
             return None
         with open(yaml_file, 'r') as f:
             tasks = yaml.safe_load(f)
-            print(tasks)
         if "tasks" not in tasks or not isinstance(tasks.get("tasks"), list):
             print("Error: the overall structure of this file is incorrect.")
             return None
         tasks_list = tasks.get("tasks")
-        print(tasks_list)
         for task_dict in tasks_list:
             if not isinstance(task_dict, dict):
                 print(f"The contents of the list of tasks are not dicts")
@@ -73,9 +71,7 @@ def pipeline(task_dict):
             print(f"{task['Prepend']}{task['Year']}-{task['Month']}-WiFi.docx was successfully converted to {task['Prepend']}{task['Year']}-{task['Month']}-WiFi.pdf")
             print(f"{task['Prepend']}{task['Year']}-{task['Month']}-Wired.docx was successfully converted to {task['Prepend']}{task['Year']}-{task['Month']}-Wired.pdf")
             print(f"Task {task_id} Done!")
-            counter += 1
         
-    print(f"Completed {counter} task(s)!")
 
 def main():
     parser = argparse.ArgumentParser()
@@ -93,6 +89,7 @@ def main():
         if args.multi < 5 and args.multi > 0:
             with concurrent.futures.ProcessPoolExecutor(max_workers=args.multi) as executor:
                 executor.map(pipeline, data_dict)
+            print(f"Completed {len(data_dict)} task(s)!")
         else:
             proceed = input(f"{args.multi} processors are unavailable. Would you like to continue with the default option (nonparallel)? [y/n]: ")
             if proceed == 'y':
@@ -103,6 +100,7 @@ def main():
     else:
         for task_dict in data_dict:
             pipeline(task_dict)
+        print(f"Completed {len(data_dict)} task(s)!")
 
 if __name__ == "__main__":
     main()
