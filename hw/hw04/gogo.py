@@ -89,16 +89,17 @@ def main():
         print(f"The YAML file \'{yaml_file}\' is empty")
         return -1
 
-    if args.multi < 5 and args.multi > 0:
-        with concurrent.futures.ProcessPoolExecutor(max_workers=args.multi) as executor:
-            executor.map(pipeline, data_dict)
-    elif args.multi:
-        proceed = input(f"{args.multi} processors are unavailable. Would you like to continue with the default option (nonparallel)? [y/n]: ")
-        if proceed == 'y':
-            for task_dict in data_dict:
-                pipeline(task_dict)
+    if args.multi:
+        if args.multi < 5 and args.multi > 0:
+            with concurrent.futures.ProcessPoolExecutor(max_workers=args.multi) as executor:
+                executor.map(pipeline, data_dict)
         else:
-            print("Now exiting ...")
+            proceed = input(f"{args.multi} processors are unavailable. Would you like to continue with the default option (nonparallel)? [y/n]: ")
+            if proceed == 'y':
+                for task_dict in data_dict:
+                    pipeline(task_dict)
+            else:
+                print("Now exiting ...")
     else:
         for task_dict in data_dict:
             pipeline(task_dict)
