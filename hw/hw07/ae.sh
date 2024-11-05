@@ -18,14 +18,14 @@ fi
 
 if [[ "$FILE" == *.zip ]]; then
 	echo "Extracting a zip file via unzip"
-	unzip -q $FILE -d $ARCHIVE_DIR
+	unzip -q $FILE -d $ARCHIVE_DIR > /dev/null 2>&1
 
 elif [[ "$FILE" == *.tar.gz ]] || [[ "$FILE" == *.tgz ]]; then
 	echo "Extracting a tar file"
-	tar -xzf $FILE -C "$ARCHIVE_DIR"
+	tar -xzf $FILE -C "$ARCHIVE_DIR" > /dev/null 2>&1
 
 elif [[ "$FILE" == *.tar ]]; then
-	tar -xf $FILE -C "$ARCHIVE_DIR"
+	tar -xf $FILE -C "$ARCHIVE_DIR" > /dev/null 2>&1
 
 else 
 	echo "Unvalid file type. This script only supports .zip, .tar or .tar.gz files."
