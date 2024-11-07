@@ -82,6 +82,7 @@ extract_archive () {
 	unzip -q "$CURR_ARCHIVE_FILE" -d "archive/$(basename $CURR_ARCHIVE_FILE | cut -d '.' -f 1)"  > /dev/null 2>&1
 	if [ $? -ne 0 ]; then
 		echo "There was an error extracting the archive: $CURR_ARCHIVE_FILE"
+		rm -rf archive
 		exit 1
 	fi
 	DIR="archive"
