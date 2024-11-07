@@ -1,5 +1,4 @@
 #!/bin/sh
-
 #set -x
 
 DEPTH=0
@@ -75,44 +74,64 @@ if [ $DEPTH -eq 0 ]; then
 	exit 0
 fi
 
+mkdir archive
 extract_archive () {
 	local CURR_DEPTH=$1
-	local CURR_ARCHIVE_FILE=$2
-	
-	sh ae.sh "$CURR_ARCHIVE_FILE" > /dev/null 2>&1
+	local CURR_ARCHIVE_FILE=$2	
+	mkdir archive/$(basename $CURR_ARCHIVE_FILE | cut -d '.' -f 1)
+	unzip -q "$CURR_ARCHIVE_FILE" -d "archive/$(basename $CURR_ARCHIVE_FILE | cut -d '.' -f 1)"  > /dev/null 2>&1
 	if [ $? -ne 0 ]; then
-		echo "There was an error extracting the archive."
+		echo "There was an error extracting the archive: $CURR_ARCHIVE_FILE"
 		exit 1
 	fi
-	for FILE in archive/*; do
-		sh sbs.sh "$BAD_URLS_CSV" "$FILE" > /dev/null 2>&1
-		if [ $? -eq 0 ]; then
-			SBS_RESULTS=$(sh sbs.sh "$BAD_URLS_CSV" "$FILE" | tail -n 1)
-			if [ "$SBS_RESULTS" != "CLEAN" ]; then
-				echo "$SBS_RESULTS"
-				rm -rf archive
-			fi
-		fi
-		sh sf.sh "$FILE" > /dev/null 2>&1
-		if [ $? -eq 0 ]; then
-			SF_RESULTS=$(sh sf.sh "$FILE" | tail -n 1)
-			if [ "$SF_RESULTS" != "CLEAN" ]; then
-				echo "$SF_RESULTS"
-				rm -rf archive
-			fi
-		fi
-		if [ $CURR_DEPTH -lt $DEPTH ]; then
-			case "$FILE" in
-				*.zip|*.tar|*.tar.gz)
-					extract_archive $( $CURR_DEPTH + 1 ) "$FILE"
-					;;
-			esac
-		fi
-	done
-	rm -rf archive
+	DIR="archive"
+	scan_dir "$DIR" "$CURR_DEPTH"
 }
 
-extract_archive $DEPTH "$ARCHIVE_FILE"
+scan_dir () {
+	for FILE in "$1"/*; do
+		parse_file "$FILE" "$2"
+	done
+}
 
-echo "CLEAN"
+parse_file () {
+	FILE=$1
+	CURR_DEPTH=$2
+	if [ -d "$FILE" ]; then
+		scan_dir "$FILE" "$CURR_DEPTH"
+		return 0
+	fi
+	if [ "$CURR_DEPTH" -lt "$DEPTH" ]; then
+		case "$FILE" in
+			*.zip|*.tar|*.tar.gz)
+				next=$((CURR_DEPTH+1))
+				extract_archive "$next" "$FILE"
+				;;
+		esac
+	fi
+
+	sh sbs.sh "$BAD_URLS_CSV" "$FILE" > /dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		SBS_RESULTS=$(sh sbs.sh "$BAD_URLS_CSV" "$FILE" | tail -n 1)
+		if [ "$SBS_RESULTS" != "CLEAN" ]; then
+			echo "$SBS_RESULTS"
+			rm -rf archive
+			exit 0
+		fi
+	fi
+	sh sf.sh "$FILE" > /dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		SF_RESULTS=$(sh sf.sh "$FILE" | tail -n 1)
+		if [ "$SF_RESULTS" != "CLEAN" ]; then
+			echo "$SF_RESULTS"
+			rm -rf archive
+			exit 0
+		fi
+	fi
+
+}
+
+extract_archive 0 "$ARCHIVE_FILE"
+
+echo "CLEaN"
 exit 0
