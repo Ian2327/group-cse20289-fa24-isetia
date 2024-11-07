@@ -134,5 +134,5 @@ parse_file () {
 
 extract_archive 0 "$ARCHIVE_FILE"
 
-echo "CLEaN"
+echo "CLEAN"
 exit 0
