@@ -7,7 +7,9 @@ if [ "$#" -eq 0 ]; then
 fi
 
 FILE=$1
-ARCHIVE_DIR="archive"
+FILE_DIR=$(dirname "$FILE")
+ARCHIVE_DIR="$FILE_DIR/archive"
+
 
 if [ ! -d "$ARCHIVE_DIR" ]; then
 	echo "archive directory is not present .. creating!"

@@ -74,12 +74,14 @@ if [ $DEPTH -eq 0 ]; then
 	exit 0
 fi
 
-mkdir archive
+#mkdir archive
 extract_archive () {
 	local CURR_DEPTH=$1
-	local CURR_ARCHIVE_FILE=$2	
-	mkdir archive/$(basename $CURR_ARCHIVE_FILE | cut -d '.' -f 1)
-	unzip -q "$CURR_ARCHIVE_FILE" -d "archive/$(basename $CURR_ARCHIVE_FILE | cut -d '.' -f 1)"  > /dev/null 2>&1
+	local CURR_ARCHIVE_FILE=$2
+	sh ae.sh "$CURR_ARCHIVE_FILE" > /dev/null 2>&1
+	#mkdir archive/$(basename $CURR_ARCHIVE_FILE | cut -d '.' -f 1)
+	#unzip -q "$CURR_ARCHIVE_FILE" -d "archive/$(basename $CURR_ARCHIVE_FILE | cut -d '.' -f 1)"  > /dev/null 2>&1
+	#sh ae.sh "$CURR_ARCHIVE_FILE" > /dev/null 2>&1
 	if [ $? -ne 0 ]; then
 		echo "There was an error extracting the archive: $CURR_ARCHIVE_FILE"
 		rm -rf archive
