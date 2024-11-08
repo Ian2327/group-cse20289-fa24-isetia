@@ -32,28 +32,38 @@ if [ ! -d archive ]; then
 	exit 1
 fi
 
-for FILE in archive/*; do
-	sh sbs.sh "$BAD_URLS_CSV" "$FILE" > /dev/null 2>&1
-	if [ $? -eq 0 ]; then
-		SBS_RESULTS=$(sh sbs.sh "$BAD_URLS_CSV" "$FILE" | tail -n 1)
-		if [ "$SBS_RESULTS" != "CLEAN" ]; then
-			echo "$SBS_RESULTS"
-			rm -rf archive
-			exit 0
+findr () {
+	DIR=$1
+	for FILE in `ls $DIR`; do
+		if [ -d "$FILE" ]; then
+			findr "$FILE"
 		fi
-	fi
-	sh sf.sh "$FILE" > /dev/null 2>&1
-	if [ $? -eq 0 ]; then
-		SF_RESULTS=$(sh sf.sh "$FILE" | tail -n 1)
-		if [ "$SF_RESULTS" != "CLEAN" ]; then
-			echo "$SF_RESULTS"
-			rm -rf archive
-			exit 0
+		sh sbs.sh "$BAD_URLS_CSV" "$FILE" > /dev/null 2>&1
+		if [ $? -eq 0 ]; then
+			SBS_RESULTS=$(sh sbs.sh "$BAD_URLS_CSV" "$FILE" | tail -n 1)
+			if [ "$SBS_RESULTS" != "CLEAN" ]; then
+				echo "$SBS_RESULTS"
+				rm -rf archive
+				exit 0
+			fi
 		fi
-	fi
+		sh sf.sh "$FILE" > /dev/null 2>&1
+		if [ $? -eq 0 ]; then
+			SF_RESULTS=$(sh sf.sh "$FILE" | tail -n 1)
+			if [ "$SF_RESULTS" != "CLEAN" ]; then
+				echo "$SF_RESULTS"
+				rm -rf archive
+				exit 0
+			fi
+		fi
 
-done
+	done
+}
 
-rm -rf archive
+findr "archive/*"
+
+if [ -d archive ]; then
+	rm -rf archive
+fi
 echo "CLEAN"
 
