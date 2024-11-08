@@ -1,5 +1,5 @@
 #!/bin/sh
-#set -x
+set -x
 
 DEPTH=0
 
@@ -19,6 +19,10 @@ if [[ $ARG1 == "-ad" ]]; then
 		echo "<depth> must be between 0 and 3."
 		exit 1
 	fi
+	if [ "$#" -lt 4 ]; then
+		echo "Usage: sh ec.sh [-ad <depth>] <archive_file> <bad_urls_csv>"
+		exit 1
+	fi
 	DEPTH=$ARG2
 	ARCHIVE_FILE=$3
 	BAD_URLS_CSV=$4	
@@ -34,54 +38,10 @@ if [ ! -f $BAD_URLS_CSV ]; then
 	exit 1
 fi
 
-if [ $DEPTH -eq 0 ]; then	
-	sh ae.sh $ARCHIVE_FILE > /dev/null 2>&1
-	
-	if [ $? -ne 0 ]; then
-		echo "There was an error extracting the archive."
-		exit 1
-	fi
-	
-	if [ ! -d archive ]; then
-		echo "Failed to extract: directory 'archive' was not found."
-		exit 1
-	fi
-	
-	for FILE in archive/*; do
-		sh sbs.sh "$BAD_URLS_CSV" "$FILE" > /dev/null 2>&1
-		if [ $? -eq 0 ]; then
-			SBS_RESULTS=$(sh sbs.sh "$BAD_URLS_CSV" "$FILE" | tail -n 1)
-			if [ "$SBS_RESULTS" != "CLEAN" ]; then
-				echo "$SBS_RESULTS"
-				rm -rf archive
-				exit 0
-			fi
-		fi
-		sh sf.sh "$FILE" > /dev/null 2>&1
-		if [ $? -eq 0 ]; then
-			SF_RESULTS=$(sh sf.sh "$FILE" | tail -n 1)
-			if [ "$SF_RESULTS" != "CLEAN" ]; then
-				echo "$SF_RESULTS"
-				rm -rf archive
-				exit 0
-			fi
-		fi
-	
-	done
-	
-	rm -rf archive
-	echo "CLEAN"
-	exit 0
-fi
-
-#mkdir archive
 extract_archive () {
 	local CURR_DEPTH=$1
 	local CURR_ARCHIVE_FILE=$2
 	sh ae.sh "$CURR_ARCHIVE_FILE" > /dev/null 2>&1
-	#mkdir archive/$(basename $CURR_ARCHIVE_FILE | cut -d '.' -f 1)
-	#unzip -q "$CURR_ARCHIVE_FILE" -d "archive/$(basename $CURR_ARCHIVE_FILE | cut -d '.' -f 1)"  > /dev/null 2>&1
-	#sh ae.sh "$CURR_ARCHIVE_FILE" > /dev/null 2>&1
 	if [ $? -ne 0 ]; then
 		echo "There was an error extracting the archive: $CURR_ARCHIVE_FILE"
 		rm -rf archive
@@ -108,6 +68,7 @@ parse_file () {
 		case "$FILE" in
 			*.zip|*.tar|*.tar.gz)
 				next=$((CURR_DEPTH+1))
+				echo "$FILE"
 				extract_archive "$next" "$FILE"
 				;;
 		esac
