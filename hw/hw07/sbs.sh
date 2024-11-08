@@ -18,6 +18,11 @@ if [ ! -f $FILE ]; then
 	exit 1
 fi
 
+if file "$FILE" | grep -q "binary"; then
+	echo "The file $FILE is a binary file."
+	exit 1
+fi
+
 BAD_SITES_DATA=$(grep -v '^#' "$CSV" | cut -d ',' -f 3)
 
 echo "Loaded site information .. success!"
