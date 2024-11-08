@@ -1,5 +1,5 @@
 #!/bin/sh
-
+#set -x
 
 if [ "$#" -eq 0 ]; then
 	echo "Usage: sh ae.sh <.zip .tar .tar.gz file>"
