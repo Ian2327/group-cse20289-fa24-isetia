@@ -12,6 +12,11 @@ if [ ! -f $FILE ]; then
 	exit 1
 fi
 
+if file "$FILE" | grep -q "binary"; then
+	echo "The file $FILE is a binary file"
+	exit 1
+fi
+
 echo "Scanning for sensitive information"
 echo "File to scan: $FILE"
 
