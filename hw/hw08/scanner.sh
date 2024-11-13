@@ -1,0 +1,100 @@
+#!/bin/sh
+
+usage () {
+	echo "Usage: sh scanner.sh <toscan_dir> <approved_content_dir> <quarantined_content_dir> <log_dir> <malicious_urls_file>"
+}
+
+extract () {
+	archive=$1
+	if [ -z $archive ]; then
+		echo "Blank file inputted to extraction function."
+		return 2
+	fi
+	if [ ! -d "./extracted" ]; then
+		echo "Directory 'extracted' does not yet exist. Creating ..."
+		mkdir extracted
+	else 
+		echo "Directory 'extracted' already exists"
+	fi 
+
+	base_name=$(basename "$archive" | sed 's/\.[^.]*$//')
+	extract_dir="./extracted/$base_name"
+	mkdir "$extract_dir"
+	case $archive in 
+		*.zip)
+			echo "Unzipping .zip file"
+			unzip "$archive" -d "$extract_dir"
+			;;
+		*.tar.gz | *.tgz)
+			echo "Extracting .tar.gz file"
+			tar -xzf "$archive" -C "$extract_dir"
+			;;
+		*.tar)
+			echo "Extracting .tar file"
+			tar -xf "$archive" -C "$extract_dir"
+			;;
+		*)
+			echo "Unsupported file type"
+			return 1
+			;;
+	esac
+
+	echo "Checking for nested archives within extracted directory..."
+	find "$extract_dir" -type f \( -name "*.zip" -o -name "*.tar.gz" -o -name "*.tgz" -o -name "*.tar" \) | while read nested_archive; do
+		echo "Found nested archive: $nested_archive"
+		extract "$nested_archive"
+		rm "$nested_archive"
+	done
+
+	return 0
+}
+
+if [ $# -ne 5 ]; then
+	usage
+	exit 2
+fi
+
+toscan_dir=$1
+approved_dir=$2
+quarantined_dir=$3
+log_dir=$4
+malicious_urls_file=$5
+
+for dir in "$toscan_dir" "$approved_dir" "$quarantined_dir" "$log_dir"; do 
+	if [ ! -d "$dir" ]; then
+		echo "$dir is not a valid directory or does not exist"
+		usage
+	fi
+done
+
+log_event () {
+	local message="$1"
+	local log_file="$log_dir/$(date + '%Y-%m-%d').log"
+	echo "$(date + '%Y-%m-%d %H:%M:%S') $message" >> $log_file
+}
+
+quarantine () {
+	local archive="$1"
+	local reason="$2"
+	local trigger="$3"
+	local archive_name=$(basename "$archive")
+
+	mv "$archive" "$quarantined_dir"
+	echo -e "Filename: $archive_name\nReason: $reason\nTrigger: $trigger" > "$quarantined_dir/$archive_name.reason"
+	log_event "$archive_name QUARANTINE $reason $trigger"
+}
+
+
+trap "log_event 'Scanner stopped'; exit 0" SIGINT
+
+log_event "Scanner started"
+
+while true; do
+	for archive in "$toscan_dir"/*; do
+		if [[ -f "$archive" ]]; then
+			extract "$archive"
+		fi
+	done
+	sleep 1
+done
+
