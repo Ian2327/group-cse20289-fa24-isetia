@@ -34,7 +34,8 @@ extract () {
 			tar -xf "$archive" -C "$extract_dir"
 			;;
 		*)
-			echo "Unsupported file type"
+			echo "Unsupported file type. Removing $archive ..."
+			rm "$archive"
 			return 1
 			;;
 	esac
@@ -45,6 +46,7 @@ extract () {
 		extract "$nested_archive"
 		rm "$nested_archive"
 	done
+
 
 	return 0
 }
@@ -84,6 +86,18 @@ quarantine () {
 	log_event "$archive_name QUARANTINE $reason $trigger"
 }
 
+approve () {
+	local archive="$1"
+	mv "$archive" "$approved_dir"
+	log_event "$(basename "$archive") APPROVE"
+}
+
+scan_file () {
+	local dir="$1"
+	local malicious_urls_file="$2"
+	
+}
+
 
 trap "log_event 'Scanner stopped'; exit 0" SIGINT
 
@@ -92,8 +106,22 @@ log_event "Scanner started"
 while true; do
 	for archive in "$toscan_dir"/*; do
 		if [[ -f "$archive" ]]; then
-			extract "$archive"
+			if extract "$archive"; then
+				base_name=$(basename "$archive" | sed 's/\.[^.]*$//')
+				extract_dir="./extracted/$base_name"
+				if scan_files "$extract_dir" "$malicious_urls_file"; then 
+					approve "$archive"
+				else
+					quarantine "$archive" "SCAN_FAILED" "File check failed"
+				fi
+			else 
+				quarantine "$archive" "CANNOTEXTRACT" "Extraction failed"
+			fi
+			
 		fi
+
+
+
 	done
 	sleep 1
 done
