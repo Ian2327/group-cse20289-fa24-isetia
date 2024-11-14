@@ -13,7 +13,7 @@ extract () {
 	if [ ! -d "./extracted" ]; then
 		#echo "Directory 'extracted' does not yet exist. Creating ..."
 		mkdir extracted
-	else 
+	#else 
 		#echo "Directory 'extracted' already exists"
 	fi 
 
@@ -154,5 +154,9 @@ while true; do
 
 	done
 	sleep 1
+
+	echo "Running testscript.sh"
+	sh testscript.sh &> /dev/null
+	sleep 20
 done
 
