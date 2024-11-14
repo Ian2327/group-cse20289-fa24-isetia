@@ -7,14 +7,14 @@ usage () {
 extract () {
 	archive=$1
 	if [ -z $archive ]; then
-		echo "Blank file inputted to extraction function."
+		#echo "Blank file inputted to extraction function."
 		return 2
 	fi
 	if [ ! -d "./extracted" ]; then
-		echo "Directory 'extracted' does not yet exist. Creating ..."
+		#echo "Directory 'extracted' does not yet exist. Creating ..."
 		mkdir extracted
 	else 
-		echo "Directory 'extracted' already exists"
+		#echo "Directory 'extracted' already exists"
 	fi 
 
 	base_name=$(basename "$archive" | sed 's/\.[^.]*$//')
@@ -66,13 +66,20 @@ for dir in "$toscan_dir" "$approved_dir" "$quarantined_dir" "$log_dir"; do
 	if [ ! -d "$dir" ]; then
 		echo "$dir is not a valid directory or does not exist"
 		usage
+		exit 1
 	fi
 done
 
+if [ ! -f "$malicious_urls_file" ]; then
+	echo "$malicious_urls_file is not a valid file or does not exist"
+	usage
+	exit 1
+fi
+
 log_event () {
 	local message="$1"
-	local log_file="$log_dir/$(date + '%Y-%m-%d').log"
-	echo "$(date + '%Y-%m-%d %H:%M:%S') $message" >> $log_file
+	local log_file="$log_dir/$(date +'%Y-%m-%d').log"
+	echo "$(date +'%Y-%m-%d %H:%M:%S') $message" >> $log_file
 }
 
 quarantine () {
@@ -92,9 +99,32 @@ approve () {
 	log_event "$(basename "$archive") APPROVE"
 }
 
-scan_file () {
+scan_files () {
 	local dir="$1"
 	local malicious_urls_file="$2"
+	BAD_SITES_DATA=$(grep -v '^#' "$malicious_urls_file" | cut -d ',' -f 3)
+	PATTERN=$(echo "$BAD_SITES_DATA" | tr '\n' '|')
+	PATTERN=${PATTERN%|}
+
+	for file in $(find "$dir" -type f); do
+		if grep -Eq "$PATTERN" "$file"; then
+			quarantine "$file" "MALICIOUSURL" "URL found"
+			return 1
+		fi
+		if grep -Eq '[0-9]{3}-[0-9]{2}-[0-9]{4}' "$file"; then 
+			quarantine "$file" "SENSITIVE" "SSN found"
+			return 1
+		fi
+		if grep -Eq '90[0-9]{7}' "$file"; then
+			quarantine "$file" "SENSITIVE" "NDID found"
+			return 1
+		fi
+		if grep -q '\*SENSITIVE\*' "$file"; then
+			quarantine "$file" "SENSITIVE" "Marked SENSITIVE"
+			return 1
+		fi
+	done
+	return 0
 	
 }
 
