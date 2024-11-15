@@ -88,14 +88,14 @@ quarantine () {
 	local trigger="$3"
 	local archive_name=$(basename "$archive")
 
-	mv "$archive" "$quarantined_dir"
+	mv -f "$archive" "$quarantined_dir"
 	echo -e "Filename: $archive_name\nReason: $reason\nTrigger: $trigger" > "$quarantined_dir/$archive_name.reason"
 	log_event "$archive_name QUARANTINE $reason $trigger"
 }
 
 approve () {
 	local archive="$1"
-	mv "$archive" "$approved_dir"
+	mv -f "$archive" "$approved_dir"
 	log_event "$(basename "$archive") APPROVE"
 }
 
@@ -163,10 +163,6 @@ while true; do
 
 	done
 	sleep 1
-
-	#echo "Running testscript.sh"
-	#sh testscript.sh &> /dev/null
-	#sleep 20
 done
 
 
