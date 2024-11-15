@@ -2,7 +2,8 @@ import os, shutil, subprocess
 from flask import Flask, request, jsonify, redirect, url_for, render_template, session
 from werkzeug.utils import secure_filename
 import glob
-
+import time
+import signal
 
 app = Flask(__name__)
 
@@ -85,13 +86,17 @@ def run_scan(file_path):
     path_to_log = '../../../scandata/log'
     path_to_badsites = '../hw07/badsites-10.csv'
 
-    process = subprocess.run(['sh', scan_script, UPLOAD_FOLDER, path_to_approved, path_to_quarantined, path_to_log, path_to_badsites], 
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-    #stdout, stderr = process.communicate()
+    process = subprocess.Popen(['sh', scan_script, UPLOAD_FOLDER, path_to_approved, path_to_quarantined, path_to_log, path_to_badsites], 
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+    time.sleep(2)
     
 
     #if process.returncode != 0:
-    #    return f"<p>Error: {stderr.decode('utf-8')}</p>"
+    #    return {"error": "Something is wrong with the subprocess method"}
+    #else:
+    #    os.kill(process.pid, signal.SIGINT)
+    #    process.wait()
 
     log_file = find_latest_log(path_to_log)
     if log_file:
