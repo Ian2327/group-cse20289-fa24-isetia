@@ -135,7 +135,7 @@ scan_files () {
 
 clean_up () {
 	log_event 'Scanner stopped'
-	#rm -r extracted
+	rm -r extracted
 	exit 0
 }
 
