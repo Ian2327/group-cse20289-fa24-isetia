@@ -1,6 +1,7 @@
 #!/bin/sh
 
-toscan_dir="/escnfs/home/isetia/repos/scandata/toscan"
+uname=$(whoami)
+toscan_dir="/escnfs/home/$uname/repos/scandata/toscan"
 test_dir="./test"
 
 if [ ! -d "$test_dir" ]; then
@@ -17,3 +18,5 @@ for archive in $test_dir/*; do
 		break
 	fi
 done
+
+exit 0
