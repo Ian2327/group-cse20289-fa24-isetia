@@ -23,15 +23,15 @@ extract () {
 	case $archive in 
 		*.zip)
 			echo "Unzipping .zip file"
-			unzip "$archive" -d "$extract_dir"
+			unzip -o "$archive" -d "$extract_dir"
 			;;
 		*.tar.gz | *.tgz)
 			echo "Extracting .tar.gz file"
-			tar -xzf "$archive" -C "$extract_dir"
+			tar -xzf "$archive" -C "$extract_dir" --overwrite
 			;;
 		*.tar)
 			echo "Extracting .tar file"
-			tar -xf "$archive" -C "$extract_dir"
+			tar -xf "$archive" -C "$extract_dir" --overwrite
 			;;
 		*)
 			echo "Unsupported file type. Removing $archive ..."
@@ -105,31 +105,41 @@ scan_files () {
 	BAD_SITES_DATA=$(grep -v '^#' "$malicious_urls_file" | cut -d ',' -f 3)
 	PATTERN=$(echo "$BAD_SITES_DATA" | tr '\n' '|')
 	PATTERN=${PATTERN%|}
+	found=0
 
 	for file in $(find "$dir" -type f); do
+		echo "DIR = $dir; FILE = $file"
 		if grep -Eq "$PATTERN" "$file"; then
 			quarantine "$file" "MALICIOUSURL" "URL found"
-			return 1
-		fi
-		if grep -Eq '[0-9]{3}-[0-9]{2}-[0-9]{4}' "$file"; then 
+			found=1
+		elif grep -Eq '[0-9]{3}-[0-9]{2}-[0-9]{4}' "$file"; then 
 			quarantine "$file" "SENSITIVE" "SSN found"
-			return 1
-		fi
-		if grep -Eq '90[0-9]{7}' "$file"; then
+			found=1
+		elif grep -Eq '90[0-9]{7}' "$file"; then
 			quarantine "$file" "SENSITIVE" "NDID found"
-			return 1
-		fi
-		if grep -q '\*SENSITIVE\*' "$file"; then
+			found=1
+		elif grep -q '\*SENSITIVE\*' "$file"; then
 			quarantine "$file" "SENSITIVE" "Marked SENSITIVE"
-			return 1
+			found=1
+		else
+			approve "$file" 
 		fi
 	done
-	return 0
+	if [ "$found" -eq 0 ]; then
+		return 0
+	else
+		return 1
+	fi
 	
 }
 
+clean_up () {
+	log_event 'Scanner stopped'
+	#rm -r extracted
+	exit 0
+}
 
-trap "log_event 'Scanner stopped'; exit 0" SIGINT
+trap 'clean_up' SIGINT
 
 log_event "Scanner started"
 
@@ -139,11 +149,10 @@ while true; do
 			if extract "$archive"; then
 				base_name=$(basename "$archive" | sed 's/\.[^.]*$//')
 				extract_dir="./extracted/$base_name"
-				if scan_files "$extract_dir" "$malicious_urls_file"; then 
-					approve "$archive"
-				else
-					quarantine "$archive" "SCAN_FAILED" "File check failed"
-				fi
+				echo "EXTRACTED DIR = $extract_dir"
+				scan_files "$extract_dir" "$malicious_urls_file"
+				rm "$archive"
+		
 			else 
 				quarantine "$archive" "CANNOTEXTRACT" "Extraction failed"
 			fi
@@ -155,8 +164,9 @@ while true; do
 	done
 	sleep 1
 
-	echo "Running testscript.sh"
-	sh testscript.sh &> /dev/null
-	sleep 20
+	#echo "Running testscript.sh"
+	#sh testscript.sh &> /dev/null
+	#sleep 20
 done
+
 
