@@ -118,7 +118,7 @@ scan_files () {
 		elif grep -Eq '90[0-9]{7}' "$file"; then
 			quarantine "$file" "SENSITIVE" "NDID found"
 			found=1
-		elif grep -Eq '\*SENSITIVE\*' "$file"; then
+		elif grep -q '\*SENSITIVE\*' "$file"; then
 			quarantine "$file" "SENSITIVE" "Marked SENSITIVE"
 			found=1
 		else
