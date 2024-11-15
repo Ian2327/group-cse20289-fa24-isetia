@@ -1,11 +1,20 @@
 #!/bin/sh
 
-uname=$(whoami)
-toscan_dir="/escnfs/home/$uname/repos/scandata/toscan"
-test_dir="./test"
 
+
+if [ $# -ne 2 ];then
+	echo "Usage: sh testscript.sh <dir_to_scan> <test_archives_dir>"
+fi
+toscan_dir=$1
+test_dir=$2
+
+
+if [ ! -d "$toscan_dir" ]; then
+	echo "Directory $toscan_dir does not exist."
+	exit 1
+fi
 if [ ! -d "$test_dir" ]; then
-	echo "Direcotry $test_dir does not exist."
+	echo "Directory $test_dir does not exist."
 	exit 1
 fi
 
