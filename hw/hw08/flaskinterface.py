@@ -1,19 +1,22 @@
 import os, shutil, subprocess
-from flask import Flask, request, jsonify, redirect, url_for, render_template
+from flask import Flask, request, jsonify, redirect, url_for, render_template, session
 from werkzeug.utils import secure_filename
+import glob
 
 
 app = Flask(__name__)
 
+app.secret_key = os.urandom(24)
 
-# Assumes that you have the toscan directory under the scandata directory under the repos directory
-UPLOAD_FOLDER = None 
+# Assumes that you have the toscan directory under the scandata directory under the repos directory, if not, you must enter one
+UPLOAD_FOLDER = "../../../scandata/toscan" # Default toscan directory relative location
 allowed_extensions = {'zip', 'tar.gz', 'tgz', 'tar'}
 
 # Checks if the file inputted is a valid type of file (.zip, .tar.gz, .tgz, .or .tar)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route('/')
 def index():
@@ -59,26 +62,64 @@ def upload_file():
 
         scan_result = run_scan(file_path)
 
-        return jsonify({"result": scan_result}), 200
+        session['scan_result'] = scan_result
+
+        return redirect(url_for('scan_result'))
 
     return jsonify({"error": "File type not allowed"}), 400        
+@app.route('/result')
+def scan_result():
+    result = session.get('scan_result', None)  # Get the result passed from the upload page
+    if result is None:
+        return redirect(url_for('index'))
+
+    if "error" in result:
+        return render_template('scan_result.html', error=result["error"])
+    return render_template('scan_result.html', approved=result["approved"], quarantined=result["quarantined"])
 
 # Runs the scanner.sh script and returns the result
 def run_scan(file_path):
-    scan_script = "scanner.sh"
+    scan_script = os.path.abspath("scanner.sh")
     path_to_approved = '../../../scandata/approved'
     path_to_quarantined = '../../../scandata/quarantined'
     path_to_log = '../../../scandata/log'
     path_to_badsites = '../hw07/badsites-10.csv'
 
-    process = subprocess.Popen([scan_script, UPLOAD_FOLDER, path_to_approved, path_to_quarantined, path_to_log, path_to_badsites], 
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
+    process = subprocess.run(['sh', scan_script, UPLOAD_FOLDER, path_to_approved, path_to_quarantined, path_to_log, path_to_badsites], 
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    #stdout, stderr = process.communicate()
+    
 
-    if process.returncode != 0:
-        return f"Error: {stderr.decode('utf-8')}"
+    #if process.returncode != 0:
+    #    return f"<p>Error: {stderr.decode('utf-8')}</p>"
 
-    return stdout.decode('utf-8')
+    log_file = find_latest_log(path_to_log)
+    if log_file:
+        approved, quarantined = parse_log(log_file)
+        return {"approved": approved, "quarantined": quarantined}
+    else:
+        return {"error": "Log file not found or unreadable"}
+
+
+def find_latest_log(log_dir):
+    log_files = glob.glob(os.path.join(log_dir, '*.log'))
+    if not log_files:
+        return None
+    return max(log_files, key=os.path.getmtime)
+
+def parse_log(log_file):
+    approved = []
+    quarantined = []
+
+    with open(log_file, 'r') as f:
+        for line in f:
+            if "APPROVE" in line:
+                approved.append(line.strip())
+            elif "QUARANTINE" in line:
+                quarantined.append(line.strip())
+
+    return approved, quarantined
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=54143, debug=True)

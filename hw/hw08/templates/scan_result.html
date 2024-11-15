@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Scan Result</h1>
+	<!--
+    <div>
+        {{ result|safe }}
+    </div>
+    
+	<br> -->
+	{% if error %}
+        <p>Error: {{ error }}</p>
+    {% else %}
+        <h2>Approved Files</h2>
+        <ul>
+            {% for file in approved %}
+                <li>{{ file }}</li>
+            {% endfor %}
+        </ul>
+        <h2>Quarantined Files</h2>
+        <ul>
+            {% for file in quarantined %}
+                <li>{{ file }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <a href="/">Back to Upload</a>
+</body>
+</html>
+
