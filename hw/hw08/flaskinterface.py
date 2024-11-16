@@ -61,7 +61,8 @@ def run_python_script(filepath):
             ['sh', 'scanner.sh', '../../../scandata/toscan', '../../../scandata/approved', '../../../scandata/quarantined', '../../../scandata/log', '../testfiles/badsite-10.csv'],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
+						timeout=10
         )
 
         # Check for errors
