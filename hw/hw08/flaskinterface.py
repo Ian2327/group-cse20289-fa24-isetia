@@ -10,7 +10,7 @@ app = Flask(__name__)
 #upload_folder = f'/escnfs/home/{uname}/repos/scandata/toscan' 
 #app.config['upload_folder'] = upload_folder
 
-app.config['UPLOAD_FOLDER'] = 'test'
+app.config['UPLOAD_FOLDER'] = '../../../scandata/toscan'
 app.config['ALLOWED_EXTENSIONS'] = {'zip', 'tar.gz', 'tgz', 'tar'}
 
 # Ensure upload folder exists
@@ -44,12 +44,12 @@ def upload_file():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(filepath)
 
-        # Run the external Python script with the uploaded file as input
-        #script_output = run_python_script(filepath)
+        #Run the external Python script with the uploaded file as input
+        script_output = run_python_script(filepath)
 
         # Return the output to the user
-        #return jsonify({"result": script_output})
-        return f"File uploaded successfully: {filepath}"
+        return jsonify({"result": script_output})
+        #return f"File uploaded successfully: {filepath}"
 
     return "Invalid file type", 400
 
@@ -58,7 +58,7 @@ def run_python_script(filepath):
     try:
         # Example: Call `process_file.py` with the uploaded file as argument
         result = subprocess.run(
-            ['python3', 'testscript.sh'],
+            ['sh', 'scanner.sh', '../../../scandata/toscan', '../../../scandata/approved', '../../../scandata/quarantined', '../../../scandata/log', '../testfiles/badsite-10.csv'],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True
