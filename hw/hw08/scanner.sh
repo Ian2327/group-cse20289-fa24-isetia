@@ -110,7 +110,7 @@ scan_files () {
 	for file in $(find "$dir" -type f); do
 		echo "DIR = $dir; FILE = $file"
 		if grep -Eq "$PATTERN" "$file"; then
-			quarantine "$file" "MALICIOUSURL" "$(grep -Eqo "$PATTERN" "$file")"
+			quarantine "$file" "MALICIOUSURL" "$(grep -Eo "$PATTERN" "$file")"
 			found=1
 		elif grep -Eq '[0-9]{3}-[0-9]{2}-[0-9]{4}' "$file"; then 
 			quarantine "$file" "SENSITIVE" "SSN found"
