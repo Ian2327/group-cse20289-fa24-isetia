@@ -39,6 +39,8 @@ def set_upload_file():
     UPLOAD_FOLDER = folder
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     print(f"Upload folder set to {UPLOAD_FOLDER}")
+
+
     return jsonify({"message": f"Upload folder set to {UPLOAD_FOLDER}"}), 200
 
 
@@ -86,13 +88,17 @@ def run_scan(file_path):
     path_to_approved = '../../../scandata/approved'
     path_to_quarantined = '../../../scandata/quarantined'
     path_to_log = '../../../scandata/log'
-    path_to_badsites = '../hw07/badsites-10.csv'
+    path_to_badsites = '../hw07/badsite-10.csv'
 
-    process = subprocess.Popen(['sh', scan_script, UPLOAD_FOLDER, path_to_approved, path_to_quarantined, path_to_log, path_to_badsites], 
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-    time.sleep(2)
+    process = subprocess.Popen(['sh', scan_script, UPLOAD_FOLDER, path_to_approved, path_to_quarantined, path_to_log, path_to_badsites])
+    time.sleep(2) 
     
+    #stdout, stderr = process.communicate()
+
+    if process.poll() is None:
+        print("THE PROCESS IS STILL RUNNING.")
+    else:
+        print(f"The process has finished with exit code: {process.poll()}")
 
     #if process.returncode != 0:
     #    return {"error": "Something is wrong with the subprocess method"}
