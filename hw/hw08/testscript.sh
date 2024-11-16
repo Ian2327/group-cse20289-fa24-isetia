@@ -1,6 +1,7 @@
 #!/bin/sh
 
-
+#Ian Setia
+#isetia@nd.edu
 
 if [ $# -ne 2 ];then
 	echo "Usage: sh testscript.sh <dir_to_scan> <test_archives_dir>"
