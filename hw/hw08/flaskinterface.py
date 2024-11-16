@@ -17,7 +17,7 @@ allowed_extensions = {'zip', 'tar.gz', 'tgz', 'tar'}
 
 # Checks if the file inputted is a valid type of file (.zip, .tar.gz, .tgz, .or .tar)
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+    return any(filename.lower().endswith(ext) for ext in allowed_extensions)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -91,20 +91,14 @@ def run_scan(file_path):
     path_to_badsites = '../hw07/badsite-10.csv'
 
     process = subprocess.Popen(['sh', scan_script, UPLOAD_FOLDER, path_to_approved, path_to_quarantined, path_to_log, path_to_badsites])
-    time.sleep(2) 
+    time.sleep(2) # Gives scanner script time to run before going to results page
     
-    #stdout, stderr = process.communicate()
 
     if process.poll() is None:
         print("THE PROCESS IS STILL RUNNING.")
     else:
         print(f"The process has finished with exit code: {process.poll()}")
 
-    #if process.returncode != 0:
-    #    return {"error": "Something is wrong with the subprocess method"}
-    #else:
-    #    os.kill(process.pid, signal.SIGINT)
-    #    process.wait()
 
     log_file = find_latest_log(path_to_log)
     if log_file:
