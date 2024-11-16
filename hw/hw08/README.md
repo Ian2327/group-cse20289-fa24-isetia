@@ -8,5 +8,3 @@ Flask:
 testscript.sh
 - The first argument is where the toscan directory is located
 - The second argument is where the directory holding all archive files to be moved is located
-
-test
