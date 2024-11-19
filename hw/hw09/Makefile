@@ -1,30 +1,33 @@
 CC=gcc
-EXEC=redextract
 CFLAGS=-c -Wall -std=c99
-GFLAGS=-g
+DEBUGFLAGS=-g -O0
 LIBS=-lpthread -lm
+
+EXEC=redextract
+DEBUG_EXEC=redextract-debug
 OBJS=main.o packet.o pcap-process.o pcap-read.o
 
 all: $(EXEC)
 
+# $@: Target
+# $^: Dependencies
+# $<: First Dependency
+
 $(EXEC): $(OBJS)
-	$(CC) $(GFLAGS) -o $(EXEC) $(OBJS) $(LIBS)
+	$(CC) -o $@ $^ $(LIBS)
+
+$(DEBUG_EXEC): CFLAGS += $(DEBUGFLAGS)
+$(DEBUG_EXEC): $(OBJS)
+	$(CC) -o $@ $^ $(LIBS)
+
+%.o: %.c %.h
+	$(CC) $(CFLAGS) -o $@ $<
 
 main.o: main.c
-	$(CC) $(CFLAGS) $(GFLAGS) -o main.o main.c
-
-packet.o: packet.c packet.h
-	$(CC) $(CFLAGS) $(GFLAGS) -o packet.o packet.c
-
-pcap-read.o: pcap-read.c pcap-read.h
-	$(CC) $(CFLAGS) $(GFLAGS) -o pcap-read.o pcap-read.c
-
-pcap-process.o: pcap-process.c pcap-process.h
-	$(CC) $(CFLAGS) $(GFLAGS) -o pcap-process.o pcap-process.c
+	$(CC) $(CFLAGS) $(GFLAGS) -o $@ $<
 
 clean: 
-	rm $(EXEC)
-	rm $(OBJS)
+	rm $(EXEC) $(DEBUG_EXEC) $(OBJS)
 
 # Given previous code
 #redextract: packet.c packet.h pcap-read.c pcap-read.h pcap-process.c pcap-process.h main.c
