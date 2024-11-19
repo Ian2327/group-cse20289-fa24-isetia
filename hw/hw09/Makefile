@@ -5,7 +5,8 @@ LIBS=-lpthread -lm
 
 EXEC=redextract
 DEBUG_EXEC=redextract-debug
-OBJS=main.o packet.o pcap-process.o pcap-read.o
+SOURCE=$(wildcard *.c)
+OBJS=$(SOURCE:.c=.o)
 
 all: $(EXEC)
 
