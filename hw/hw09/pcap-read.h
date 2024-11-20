@@ -4,7 +4,7 @@
 
 /* Note: Increased this to accommodate raw WiFi packets 
      Make sure to test later */
-#define DEFAULT_READ_BUFFER     2500
+#define DEFAULT_READ_BUFFER     1500 //2500 was too large
 
 #include <stdio.h>
 #include <stdlib.h>
