@@ -25,7 +25,7 @@ $(DEBUG_EXEC): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $<
 
 main.o: main.c
-	$(CC) $(CFLAGS) $(GFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -o $@ $<
 
 clean: 
 	rm $(EXEC) $(DEBUG_EXEC) $(OBJS)

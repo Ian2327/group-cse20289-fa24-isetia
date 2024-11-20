@@ -62,5 +62,13 @@ int main (int argc, char *argv[])
     printf("  Total Duplicate Percent: %6.2f%%\n", fPct);
 
 
+	free(theInfo.FileName);
+	for (int j = 0; j < BigTableSize; j++) {
+        if (BigTable[j].ThePacket != NULL) {
+            discardPacket(BigTable[j].ThePacket); // Free each packet
+            BigTable[j].ThePacket = NULL;
+        }
+    }
+	free(BigTable);
     return 0;
 }
