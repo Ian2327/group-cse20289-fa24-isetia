@@ -1,0 +1,95 @@
+import sys, json, requests, signal, statistics, zmq
+from processdata import *
+
+def exit(signal, frame):
+    print("Shutting down server")
+    sys.exit(0)
+
+def parse_commands(command):
+    parts = command.split(", ")
+    if len(parts) < 4:
+        return None, "failure, incomplete command"
+    stat, date, time, filters = parts[0], parts[1], parts[2], parts[3]
+    if not filters:
+        filters = "iface=eth0;dir=downlink;type=iperf"
+
+    return (stat, date, time, filters), None
+
+def calculate_stat(stat, data):
+    if stat == "count":
+        return len(data)
+    elif stat == "mean":
+        return statistics.mean(d['tput_mbps'] for d in data)
+    elif stat == "median":
+        return statistics.median(d['tput_mbps'] for d in data)
+    elif stat == "min":
+        return min(d['tput_mbps'] for d in data)
+    elif stat == "max":
+        return max(d['tput_mbps'] for d in data)
+    elif stat == "stddev":
+        return statistics.stddev(d['tput_mbps'] for d in data)
+    else:
+        return None
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: python3 theServer.py <data_url> <port>")
+        sys.exit(1)
+
+    data_url = sys.argv[1]
+    port = int(sys.argv[2])
+
+    try:
+        with open(data_url, 'r') as f:
+            data = json.load(f)
+    except Exception as e:
+        print(f"Error loading data from {data_url}")
+        sys.exit(1)
+    
+    context = zmq.Context()
+    socket = context.socket(zmq.REP)
+    socket.bind(f"tcp://*:{port}") 
+    print(f"Server started successfully - listening on Port {port}")
+    signal.signal(signal.SIGINT, exit)
+
+    list_queue = []
+
+    while True:
+        print("Waiting for a new command")
+        command = socket.recv_string()
+        print(f"RCVD: {command}")
+        if command == "exit":
+            socket.send_string("success, exiting")
+            break
+        if command == "more":
+            if list_queue:
+                record = list_queue.pop(0)
+                response = f"success, {len(list_queue)}, " + ", ".join(f"{k}, {v}" for k, v in record.items())
+            else:
+                response = "failure, no more data to send"
+            socket.send_string(response)
+            continue
+        parsed_command, error = parse_commands(command)
+        if error:
+            socket.send_string(error)
+            continue
+        stat, date, time, filters = parsed_command
+        try:
+            filtered_records = filter_data(data, date, time, filters)
+        except Exception as e:
+            socket.send_string(f"failure, error filtering data: {e}")
+            continue
+        if stat == "list":
+            list_queue = filtered_records
+            response = f"success, {len(list_queue)}"
+        else:
+            try:
+                result = calculate_stat(stat, filtered_records)
+                if result is not None:
+                    response = f"success, {stat}, {result:.4f}" if isinstance(result, float) else f"success, {stat}, {result}"
+                else:
+                    response = "failure, bad command - " + stat
+            except Exception as e:
+                response = f"failure, error processing stat: {e}"
+
+        socket.send_string(response)
