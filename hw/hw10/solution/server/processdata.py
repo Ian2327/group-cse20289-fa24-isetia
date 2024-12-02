@@ -7,7 +7,7 @@ def match_date(timestamp, date_filter):
     filter_parts = date_filter.split("-")
 
     for i in range(len(parts)):
-        if filter_parts[i] != "+" and filter_parts[i] != parts[i]:
+        if filter_parts[i] != "*" and filter_parts[i] != parts[i]:
             return False
     return True
 
@@ -35,7 +35,7 @@ def filter_data(data, date_filter, time_filter, filter_string):
             filtered.append(record)
     return filtered
 
-
+# Wrote before break, forgot what I was trying to do
 def process_data(data, filters):
     if not filters:
         return data
