@@ -42,7 +42,7 @@ if [[ $ARG1 == "-query" ]]; then
 	MONTH=$4
 	DAY=$5
 	HOUR=$6
-	./$EXE "$HOST" "$PORT" -query "$FILTER_STRING" "$YEAR" "$MONTH" "$DAY" "$HOUR"
+	./$EXE "$HOST" "$PORT" "$YEAR" "$MONTH" "$DAY" "$HOUR" "$FILTER_STRING"
 else
 	if [ $# -ne 4 ]; then
 		echo "Usage: $0 <year> <month> <day> <hour>"
