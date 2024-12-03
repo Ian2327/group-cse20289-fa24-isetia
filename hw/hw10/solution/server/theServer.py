@@ -6,12 +6,33 @@ def exit(signal, frame):
     sys.exit(0)
 
 def parse_commands(command):
-    parts = command.split(", ")
+    parts = [part.strip() for part in command.split(",")]
     if len(parts) < 4:
         return None, "failure, incomplete command"
-    stat, date, time, filters = parts[0], parts[1], parts[2], parts[3]
+    stat, date, time, filters = parts[0], parts[1], parts[2], parts[3] if len(parts) > 3 else None
     if not filters:
-        filters = "interface=eth0;direction=downlink;type=iperf"
+        filters = "interface=eth0;direction=downlink;type=iperf" # example uses iface, dir, and type but
+                                                                 # json has interface, direction, and type
+    else:
+        fixed_filters = []
+        try:
+            filter_parts = filters.split(";")
+            for filter_part in filter_parts:
+                key_val = filter_part.split("=")
+                if len(key_val) != 2:
+                    return None, f"failure, malformed filter: {filter_part}"
+                key, val = key_val
+                if key in {"iface", "interface"}:
+                    fixed_filters.append(f"interface={val}")
+                elif key in {"dir", "direction"}:
+                    fixed_filters.append(f"direction={val}")
+                elif key in {"type"}:
+                    fixed_filters.append(f"type={val}")
+                else:
+                    return None, f"failure, unknown filter key: {key}"
+            filters = ";".join(fixed_filters)
+        except Exception as e:
+            return None, f"failure, error processing filters: {e}"
 
     return (stat, date, time, filters), None
 
