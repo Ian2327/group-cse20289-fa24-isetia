@@ -1,4 +1,6 @@
 #!/bin/sh
+# Ian Setia
+# isetia@nd.edu
 
 CONFIG_FILE=".config"
 

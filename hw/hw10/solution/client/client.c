@@ -79,7 +79,23 @@ int main(int argc, char *argv[]){
 		zmq_ctx_destroy(context);
 		return EXIT_SUCCESS;
 	}else if(argc > 6){
-
+		printf("Starting server/client system with shell script.\n");
+		char *host  = argv[1];
+		char *port  = argv[2];
+		char *year  = argv[3];
+		char *month = argv[4];
+		char *day   = argv[5];
+		char *hour  = argv[6];
+		char filter_string[MAX_COMMAND_LEN];
+		if(argc == 8){
+			sprintf(filter_string, argv[7]);
+		}
+		char server_endpoint[25];
+		sprintf(server_endpoint, "tcp://%s:%s", host, port);
+		printf("%s\n", server_endpoint);
+		printf("%s\n", filter_string);
+	}else{
+		printf("There are an incorrect number of arguments to client.c script.\n");
 	}
 }
 
