@@ -64,8 +64,12 @@ if __name__ == "__main__":
             data = json.load(f)
             context = zmq.Context()
             socket = context.socket(zmq.REP)
-            socket.bind(f"tcp://*:{port}") 
-            print(f"Server started successfully - listening on Port {port}")
+            try:
+                socket.bind(f"tcp://*:{port}") 
+                print(f"Server started successfully - listening on Port {port}")
+            except:
+                print("Failed to bind on port" + str(port))
+                sys.exit(1)
             signal.signal(signal.SIGINT, exit)
 
             list_queue = []
