@@ -8,7 +8,7 @@ def exit(signal, frame):
 def parse_commands(command):
     parts = [part.strip() for part in command.split(",")]
     if len(parts) < 4:
-        return None, "failure, incomplete command"
+        return None, "failure, incomplete/invalid command"
     stat, date, time, filters = parts[0], parts[1], parts[2], parts[3] if len(parts) > 3 else None
     if not filters:
         filters = "interface=eth0;direction=downlink;type=iperf" # example uses iface, dir, and type but
@@ -94,6 +94,9 @@ if __name__ == "__main__":
                     socket.send_string(error)
                     continue
                 stat, date, time, filters = parsed_command
+                if stat not in ["list", "count", "mean", "stddev", "median", "min", "max"]:
+                    socket.send_string(f"failure, invalid command {stat}")
+                    continue
                 try:
                     filtered_records = filter_data(data, date, time, filters)
                 except Exception as e:
