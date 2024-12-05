@@ -167,15 +167,17 @@ int main(int argc, char *argv[]){
     		char *value = NULL;
 			char *token = strtok(response, ",");
 			printf("%-20s: %s\n", "Status", token);
-			token = strtok(NULL, ",");
-			if(strcmp(command_part, "more") == 0 || strcmp(command_part, "list") == 0){
-				printf("%-20s: %s\n", "Number in list", token);
-				token = strtok(NULL, ", ");
-			}else if(strcmp(token, "failure") == 0){
+			if(strcmp(token, "failure") == 0){
+				token = strtok(NULL, ",");
 				printf("%-20s: %s\n", "Reason", token);
 				token = strtok(NULL, ",");
 			}
+			else if(strcmp(command_part, "more") == 0 || strcmp(command_part, "list") == 0){
+				token = strtok(NULL, ",");
+				printf("%-20s: %s\n", "Number in list", token);
+			}
    			// Iterate through each token and format it as key-value pair
+			token = strtok(NULL, ",");
    			while (token != NULL) {
 		        if (count % 2 == 0) {
 		            key = token; // Every even token is a key
