@@ -86,7 +86,14 @@ int main(int argc, char *argv[]){
 		char *month = argv[4];
 		char *day   = argv[5];
 		char *hour  = argv[6];
-		char filter_string[MAX_COMMAND_LEN];
+		printf("Host: %s\n", host);
+		printf("Port: %s\n", port);
+		printf("Year: %s\n", year);
+		printf("Month: %s\n", month);
+		printf("Day: %s\n", day);
+		printf("Hour: %s\n", hour);
+
+		char filter_string[MAX_COMMAND_LEN] = "";
 		if(argc == 8){
 			sprintf(filter_string, argv[7]);
 		}
@@ -94,6 +101,63 @@ int main(int argc, char *argv[]){
 		sprintf(server_endpoint, "tcp://%s:%s", host, port);
 		printf("%s\n", server_endpoint);
 		printf("%s\n", filter_string);
+		char command[MAX_COMMAND_LEN];
+		sprintf(command, ", %s-%s-%s, %s, %s", year, month, day, hour, filter_string);
+
+		void *context = zmq_ctx_new();
+		void *socket = zmq_socket(context, ZMQ_REQ);
+		if(zmq_connect(socket, SERVER_ENDPOINT) != 0){
+			perror("Error connecting to server");
+			zmq_close(socket);
+			zmq_ctx_destroy(context);
+			return EXIT_FAILURE;
+		}
+		printf("Connected to server at %s\n", SERVER_ENDPOINT);
+		while(1){
+			char command_part[MAX_COMMAND_LEN]; // Holds the first part of the command (list, more, count, etc.)
+			printf("Enter command (or 'exit' to quit): ");
+			if(fgets(command_part, MAX_COMMAND_LEN, stdin) == NULL){
+				printf("Error reading input.\n");
+				continue;
+			}else{
+				printf("Command_part: %s", command_part);
+			}
+			size_t len = strlen(command_part);
+			if(len > 0 && command_part[len-1] == '\n'){
+				command_part[len-1] = '\0';
+			}
+
+			if(strcmp(command_part, "exit") == 0){
+				zmq_send(socket, command_part, strlen(command_part), 0);
+				printf("Exiting...\n");
+				break;
+			}
+			if(strcmp(command_part, "more") == 0){
+				zmq_send(socket, command_part, strlen(command_part), 0);
+			}else{
+				if(!validate_input(command)){
+					continue;
+				}
+				char full_command[MAX_COMMAND_LEN];
+				printf("Partial command: %s\n", command);
+				sprintf(full_command, "%s%s", command_part, command);
+				printf("FULL COMMAND: %s\n", full_command);
+				if(zmq_send(socket, full_command, strlen(full_command), 0) == -1){
+					perror("Error sending command");
+					continue;
+				}
+			}
+			char response[MAX_COMMAND_LEN] = {0};
+			int received = zmq_recv(socket, response, MAX_COMMAND_LEN - 1, 0);
+			if(received == -1){
+				perror("Error receiving response");
+				continue;
+			}
+			response[received] = '\0';
+			printf("Server response: %s\n", response);
+		}	
+
+		
 	}else{
 		printf("There are an incorrect number of arguments to client.c script.\n");
 	}

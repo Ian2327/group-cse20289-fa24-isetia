@@ -36,6 +36,7 @@ fi
 ARG1=$1
 if [[ $ARG1 == "-query" ]]; then
 	if [ $# -ne 6 ]; then
+		echo $#
 		echo "Usage: $0 -query <filter_string> <year> <month> <day> <hour>"
 		exit 1
 	fi
@@ -47,12 +48,13 @@ if [[ $ARG1 == "-query" ]]; then
 	./$EXE "$HOST" "$PORT" "$YEAR" "$MONTH" "$DAY" "$HOUR" "$FILTER_STRING"
 else
 	if [ $# -ne 4 ]; then
+		echo $#
 		echo "Usage: $0 <year> <month> <day> <hour>"
 		exit 1
 	fi
-	YEAR=$2
-	MONTH=$3
-	DAY=$4
-	HOUR=$5
+	YEAR=$1
+	MONTH=$2
+	DAY=$3
+	HOUR=$4
 	./$EXE "$HOST" "$PORT" "$YEAR" "$MONTH" "$DAY" "$HOUR"
 fi
