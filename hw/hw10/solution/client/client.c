@@ -106,13 +106,13 @@ int main(int argc, char *argv[]){
 
 		void *context = zmq_ctx_new();
 		void *socket = zmq_socket(context, ZMQ_REQ);
-		if(zmq_connect(socket, SERVER_ENDPOINT) != 0){
+		if(zmq_connect(socket, server_endpoint) != 0){
 			perror("Error connecting to server");
 			zmq_close(socket);
 			zmq_ctx_destroy(context);
 			return EXIT_FAILURE;
 		}
-		printf("Connected to server at %s\n", SERVER_ENDPOINT);
+		printf("Connected to server at %s\n", server_endpoint);
 		while(1){
 			char command_part[MAX_COMMAND_LEN]; // Holds the first part of the command (list, more, count, etc.)
 			printf("Enter command (or 'exit' to quit): ");
