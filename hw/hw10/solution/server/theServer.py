@@ -48,7 +48,7 @@ def calculate_stat(stat, data):
     elif stat == "max":
         return max(d['tput_mbps'] for d in data)
     elif stat == "stddev":
-        return statistics.stddev(d['tput_mbps'] for d in data)
+        return statistics.stdev(d['tput_mbps'] for d in data)
     else:
         return None
 
