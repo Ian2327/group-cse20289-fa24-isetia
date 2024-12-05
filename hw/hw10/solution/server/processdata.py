@@ -44,7 +44,7 @@ def process_data(data, filters):
     for item in data:
         isMatch = True
         for key, val in filters.items():
-            if str(item.get(key, "")).lower() != str(value).lower():
+            if str(item.get(key, "")).lower() != str(val).lower():
                 isMatch = False
                 break
 
