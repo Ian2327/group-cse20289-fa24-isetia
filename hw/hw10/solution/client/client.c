@@ -154,7 +154,31 @@ int main(int argc, char *argv[]){
 				continue;
 			}
 			response[received] = '\0';
-			printf("Server response: %s\n", response);
+
+			// Start of reponse formatting instead of writing bbf.sh script
+
+			printf("\n=============================================\n");
+        	printf("Server Response:\n");
+        	printf("=============================================\n");
+			char *token = strtok(response, ",");
+    		int count = 0;
+    		char *key = NULL;
+    		char *value = NULL;
+	
+    		// Iterate through each token and format it as key-value pair
+    		while (token != NULL) {
+		        if (count % 2 == 0) {
+		            key = token; // Every even token is a key
+		        } else {
+		            value = token; // Every odd token is a value
+		            printf("%-20s: %s\n", key, value);
+		        }
+		        count++;
+		        token = strtok(NULL, ",");
+		    }
+
+		    // End of the response formatting
+		    printf("=============================================\n");
 		}	
 
 		

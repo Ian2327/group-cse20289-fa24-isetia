@@ -10,4 +10,7 @@ How to run server/client with user input:
 
 When running either the shell script or the client executable with wildcard * for the year, month, day, or hour, type as '*' to prevent it from doing a wildcard on the files in the directory
 
+When running client through bb.sh, it allows the user to input the date, time, and string filters upon execuing ./bb.sh and simply call 'list', 'more', 'count', ..., 'exit' without having to reenter the filters initially set upon calling the execution of bb.sh
+
+Rather than writing a separate bbf script, the client.c script has been altered to have nicely formatted outputs
 
