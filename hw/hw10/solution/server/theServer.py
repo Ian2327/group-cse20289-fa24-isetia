@@ -64,12 +64,12 @@ if __name__ == "__main__":
             data = json.load(f)
             context = zmq.Context()
             socket = context.socket(zmq.REP)
-            try:
-                socket.bind(f"tcp://*:{port}") 
-                print(f"Server started successfully - listening on Port {port}")
-            except:
-                print("Failed to bind on port" + str(port))
-                sys.exit(1)
+            #try:
+            socket.bind(f"tcp://*:{port}") 
+            print(f"Server started successfully - listening on Port {port}")
+            #except:
+            #    print("Failed to bind on port" + str(port))
+            #    sys.exit(1)
             signal.signal(signal.SIGINT, exit)
 
             list_queue = []
@@ -100,7 +100,10 @@ if __name__ == "__main__":
                     socket.send_string(f"failure, error filtering data: {e}")
                     continue
                 if stat == "list":
-                    list_queue = filtered_records
+                    if isinstance(filtered_records, list):
+                        list_queue.extend(filtered_records)  # Add individual records to the queue
+                    else:
+                        list_queue.append(filtered_records)
                     response = f"success, {len(list_queue)}"
                 else:
                     try:
