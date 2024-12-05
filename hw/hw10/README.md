@@ -1,5 +1,5 @@
-Ian Setia
-isetia@nd.edu
+Ian Setia, Andrew Linares
+isetia@nd.edu, alinare2@nd.edu
 
 How to run server/client with user input:
 - $ gcc -o client client.c -lzmq
