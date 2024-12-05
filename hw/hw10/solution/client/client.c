@@ -120,7 +120,7 @@ int main(int argc, char *argv[]){
 				printf("Error reading input.\n");
 				continue;
 			}else{
-				printf("Command_part: %s", command_part);
+				//printf("Command_part: %s", command_part);
 			}
 			size_t len = strlen(command_part);
 			if(len > 0 && command_part[len-1] == '\n'){
@@ -139,9 +139,9 @@ int main(int argc, char *argv[]){
 					continue;
 				}
 				char full_command[MAX_COMMAND_LEN];
-				printf("Partial command: %s\n", command);
+				//printf("Partial command: %s\n", command);
 				sprintf(full_command, "%s%s", command_part, command);
-				printf("FULL COMMAND: %s\n", full_command);
+				//printf("FULL COMMAND: %s\n", full_command);
 				if(zmq_send(socket, full_command, strlen(full_command), 0) == -1){
 					perror("Error sending command");
 					continue;
@@ -155,32 +155,39 @@ int main(int argc, char *argv[]){
 			}
 			response[received] = '\0';
 
+			printf("FULL RESPONSE: %s\n", response);
+
 			// Start of reponse formatting instead of writing bbf.sh script
 
-			printf("\n=============================================\n");
-        	printf("Server Response:\n");
-        	printf("=============================================\n");
-			char *token = strtok(response, ",");
-    		int count = 0;
-    		char *key = NULL;
-    		char *value = NULL;
-	
-    		// Iterate through each token and format it as key-value pair
-    		while (token != NULL) {
+				printf("\n=============================================\n");
+        		printf("Server Response:\n");
+        		printf("=============================================\n");
+    			int count = 0;
+    			char *key = NULL;
+    			char *value = NULL;
+				char *token = strtok(response, ",");
+				printf("%-20s: %s\n", "Status", token);
+				token = strtok(NULL, ",");
+			if(strcmp(command_part, "more") == 0 || strcmp(command_part, "list") == 0){
+				printf("%-20s: %s\n", "Number in list", token);
+				token = strtok(NULL, ", ");
+			}
+   			// Iterate through each token and format it as key-value pair
+   			while (token != NULL) {
 		        if (count % 2 == 0) {
 		            key = token; // Every even token is a key
 		        } else {
 		            value = token; // Every odd token is a value
 		            printf("%-20s: %s\n", key, value);
 		        }
-		        count++;
-		        token = strtok(NULL, ",");
-		    }
-
-		    // End of the response formatting
-		    printf("=============================================\n");
+			    count++;
+			    token = strtok(NULL, ", ");
+			}
+	
+			// End of the response formatting
+			printf("=============================================\n");
 		}	
-
+	
 		
 	}else{
 		printf("There are an incorrect number of arguments to client.c script.\n");
