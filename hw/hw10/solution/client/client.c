@@ -159,18 +159,21 @@ int main(int argc, char *argv[]){
 
 			// Start of reponse formatting instead of writing bbf.sh script
 
-				printf("\n=============================================\n");
-        		printf("Server Response:\n");
-        		printf("=============================================\n");
-    			int count = 0;
-    			char *key = NULL;
-    			char *value = NULL;
-				char *token = strtok(response, ",");
-				printf("%-20s: %s\n", "Status", token);
-				token = strtok(NULL, ",");
+			printf("\n=============================================\n");
+        	printf("Server Response:\n");
+        	printf("=============================================\n");
+    		int count = 0;
+    		char *key = NULL;
+    		char *value = NULL;
+			char *token = strtok(response, ",");
+			printf("%-20s: %s\n", "Status", token);
+			token = strtok(NULL, ",");
 			if(strcmp(command_part, "more") == 0 || strcmp(command_part, "list") == 0){
 				printf("%-20s: %s\n", "Number in list", token);
 				token = strtok(NULL, ", ");
+			}else if(strcmp(token, "failure") == 0){
+				printf("%-20s: %s\n", "Reason", token);
+				token = strtok(NULL, ",");
 			}
    			// Iterate through each token and format it as key-value pair
    			while (token != NULL) {

@@ -14,3 +14,5 @@ When running client through bb.sh, it allows the user to input the date, time, a
 
 Rather than writing a separate bbf script, the client.c script has been altered to have nicely formatted outputs
 
+Example usage of bb.sh: ./bb.sh -query 'iface=eth0;dir=downlink;type=iperf' '*' '*' '*' '*'
+
