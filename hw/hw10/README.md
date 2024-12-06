@@ -16,3 +16,7 @@ Rather than writing a separate bbf script, the client.c script has been altered 
 
 Example usage of bb.sh: ./bb.sh -query 'iface=eth0;dir=downlink;type=iperf' '*' '*' '*' '*'
 
+
+Test.sh:
+- Tests the client with various commands, both valid and invalid
+- Tests the client executable with both valid and invalid arguments
